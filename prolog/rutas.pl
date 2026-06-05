@@ -1,8 +1,6 @@
 % Ciudades: departamentos de Guatemala
 % Distancias en kilómetros 
 
-:- dynamic ciudad/1, conexion/3.
-
 % --- CIUDADES ---
 ciudad(guatemala).
 ciudad(antigua).

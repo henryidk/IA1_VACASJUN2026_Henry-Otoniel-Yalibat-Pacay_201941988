@@ -103,8 +103,11 @@ class RouteService:
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         extended_path = os.path.join(base_dir, "prolog", "rutas_extended.pl")
 
-        # assertz agrega hechos sin reemplazar los ya definidos en rutas.pl
-        lineas = ["% Archivo generado automaticamente — extension de rutas.pl\n\n"]
+        lineas = [
+            "% Archivo generado automaticamente — extension de rutas.pl\n",
+            "% NO modificar manualmente. Generado por el backend de Python.\n\n",
+            ":- dynamic ciudad/1, conexion/3.\n\n",
+        ]
         for ciudad in self._nuevas_ciudades:
             lineas.append(f":- assertz(ciudad({ciudad})).\n")
         lineas.append("\n")
