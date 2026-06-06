@@ -122,6 +122,11 @@ select:focus, input:focus { outline: none; border-color: var(--primary); }
 .sesion-ciudad-nombre { font-weight: 600; font-size: 0.95rem; margin-bottom: 4px; }
 .sesion-conexion { font-size: 0.82rem; color: var(--text-muted); }
 
+/* ===== RESTABLECER ===== */
+.separador { border-top: 1px dashed var(--border); margin: 20px 0; }
+.restablecer-zona { background: var(--danger-light); border-radius: var(--radius-sm); padding: 14px 16px; }
+.texto-restablecer { font-size: 0.83rem; color: var(--danger); margin-bottom: 10px; }
+
 /* ===== FOOTER ===== */
 .footer { text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.82rem; border-top: 1px solid var(--border); background: var(--card); }
 

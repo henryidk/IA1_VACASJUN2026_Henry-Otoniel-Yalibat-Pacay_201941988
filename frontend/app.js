@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-agregar-ciudad').addEventListener('click', agregarCiudad);
   document.getElementById('btn-confirmar').addEventListener('click', confirmarCambios);
   document.getElementById('btn-limpiar-sesion').addEventListener('click', limpiarSesion);
+  document.getElementById('btn-restablecer').addEventListener('click', restablecerBase);
 
   document.getElementById('conexiones-container').addEventListener('click', e => {
     if (e.target.classList.contains('btn-remove')) eliminarFilaConexion(e.target);
@@ -365,6 +366,21 @@ async function limpiarSesion() {
     const data = await res.json();
     mostrarAlerta('alerta-sesion', data.mensaje, 'exito');
     await actualizarSesion();
+  } catch {
+    mostrarAlerta('alerta-sesion', 'Error al conectar con el servidor.', 'error');
+  }
+}
+
+async function restablecerBase() {
+  if (!confirm('¿Estás seguro? Esto eliminará todas las ciudades agregadas y volverá a la base de conocimiento original.')) return;
+  ocultarAlerta('alerta-sesion');
+  try {
+    const res = await fetch(`${API}/ciudades/restablecer`, { method: 'DELETE' });
+    const data = await res.json();
+    mostrarAlerta('alerta-sesion', data.mensaje, 'exito');
+    await actualizarSesion();
+    await cargarCiudades();
+    limpiarBusqueda();
   } catch {
     mostrarAlerta('alerta-sesion', 'Error al conectar con el servidor.', 'error');
   }
