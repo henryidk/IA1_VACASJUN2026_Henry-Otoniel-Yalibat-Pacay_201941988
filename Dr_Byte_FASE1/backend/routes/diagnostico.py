@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from motor_prolog import obtener_diagnostico, obtener_sintomas
 from historial import guardar_diagnostico
+from telegram_bot import enviar_notificacion
 
 diagnostico_bp = Blueprint('diagnostico', __name__)
 
@@ -31,6 +32,14 @@ def diagnosticar():
     entrada = guardar_diagnostico(
         sintomas,
         resultado['falla'],
+        resultado['descripcion'],
+        resultado['recomendaciones']
+    )
+
+    enviar_notificacion(
+        entrada['id'],
+        entrada['fecha'],
+        sintomas,
         resultado['descripcion'],
         resultado['recomendaciones']
     )
