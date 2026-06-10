@@ -11,6 +11,11 @@ services:
       - historial_data:/data
     networks:
       - red_interna
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/sintomas"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   frontend:
     build: ./frontend
@@ -19,7 +24,8 @@ services:
     volumes:
       - ./frontend:/usr/share/nginx/html
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - red_interna
 
