@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 from database import create_tables
+import models  # noqa: F401 — necesario para que SQLAlchemy registre las tablas
 
 app = FastAPI(title="SmartBot API")
 app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "dev-secret"))
