@@ -6,6 +6,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from database import create_tables
 from seed import seed
 from routes.auth import router as auth_router
+from routes.categorias import router as categorias_router
 import models  # noqa: F401 — necesario para que SQLAlchemy registre las tablas
 
 app = FastAPI(title="SmartBot API")
@@ -22,6 +23,7 @@ def startup():
 
 
 app.include_router(auth_router)
+app.include_router(categorias_router)
 
 
 @app.get("/health")
