@@ -99,5 +99,35 @@ function mostrarSeccionResultado() {
   seccion.scrollIntoView({ behavior: 'smooth' });
 }
 
-// Se implementa en 8.2
-function mostrarResultado(data) {}
+function mostrarResultado(data) {
+  const contenido = document.getElementById('resultado-contenido');
+
+  const recomendaciones = data.recomendaciones.map(r => `
+    <li class="py-2">
+      <i class="bi bi-check2 text-success me-2"></i>${r}
+    </li>`).join('');
+
+  contenido.innerHTML = `
+    <div class="mb-3 d-flex justify-content-between align-items-center text-muted small">
+      <span><i class="bi bi-hash me-1"></i>Diagnóstico #${data.id}</span>
+      <span><i class="bi bi-calendar me-1"></i>${data.fecha}</span>
+    </div>
+
+    <div class="resultado-falla mb-4">
+      <div class="fw-bold fs-5 mb-1">
+        <i class="bi bi-exclamation-triangle text-warning me-2"></i>Falla detectada
+      </div>
+      <div class="fs-6">${data.descripcion}</div>
+    </div>
+
+    <div>
+      <div class="fw-bold mb-2">
+        <i class="bi bi-lightbulb text-primary me-2"></i>Recomendaciones
+      </div>
+      <ul class="list-unstyled resultado-recomendaciones mb-0">
+        ${recomendaciones}
+      </ul>
+    </div>`;
+
+  mostrarSeccionResultado();
+}
