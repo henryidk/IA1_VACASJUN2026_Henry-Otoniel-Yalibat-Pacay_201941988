@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+    <h2>Dashboard</h2>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="label">Total Preguntas</div>
+        <div class="value">{{ total_preguntas }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Total Categorías</div>
+        <div class="value">{{ total_categorias }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Chat ID Telegram</div>
+        <div class="value" style="font-size:1rem; padding-top:0.5rem;">
+            {% if chat_id %}{{ chat_id }}{% else %}<span style="color:#94a3b8;font-size:0.9rem;">No configurado</span>{% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <p style="color:#64748b; font-size:0.9rem;">Bienvenido al panel de administración de SmartBot. Desde aquí puedes gestionar las preguntas frecuentes, categorías y la configuración del bot.</p>
+</div>
+{% endblock %}

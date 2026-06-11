@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+    <h2>Preguntas</h2>
+    <a href="/panel/preguntas/nueva" class="btn btn-primary">+ Nueva pregunta</a>
+</div>
+
+<div class="card">
+    {% if preguntas %}
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Pregunta</th>
+                <th>Respuesta</th>
+                <th>Categoría</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in preguntas %}
+            <tr>
+                <td>{{ p.id }}</td>
+                <td class="truncate">{{ p.pregunta }}</td>
+                <td class="truncate">{{ p.respuesta }}</td>
+                <td>{{ p.categoria.nombre if p.categoria else '—' }}</td>
+                <td>
+                    {% if p.activa %}
+                        <span class="badge badge-green">Activa</span>
+                    {% else %}
+                        <span class="badge badge-red">Inactiva</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="/panel/preguntas/{{ p.id }}/editar" class="btn btn-secondary btn-sm">Editar</a>
+                    <form method="post" action="/panel/preguntas/{{ p.id }}/eliminar" style="display:inline;" onsubmit="return confirm('¿Eliminar esta pregunta?')">
+                        <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:#64748b; text-align:center; padding:2rem;">No hay preguntas registradas. <a href="/panel/preguntas/nueva">Crear la primera</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

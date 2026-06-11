@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBot Admin</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f1f5f9; color: #1e293b; display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar { width: 240px; background: #1e293b; color: #cbd5e1; display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar-header { padding: 1.5rem 1.25rem; border-bottom: 1px solid #334155; }
+        .sidebar-header h1 { font-size: 1.25rem; color: #f8fafc; font-weight: 700; }
+        .sidebar-header span { font-size: 0.75rem; color: #64748b; }
+        nav { flex: 1; padding: 1rem 0; }
+        nav a { display: block; padding: 0.65rem 1.25rem; color: #94a3b8; text-decoration: none; font-size: 0.9rem; border-left: 3px solid transparent; transition: all 0.15s; }
+        nav a:hover, nav a.active { color: #f8fafc; background: #334155; border-left-color: #2563eb; }
+        .sidebar-footer { padding: 1rem 1.25rem; border-top: 1px solid #334155; font-size: 0.8rem; }
+        .sidebar-footer .user { color: #94a3b8; margin-bottom: 0.4rem; }
+        .sidebar-footer a { color: #ef4444; text-decoration: none; }
+        .sidebar-footer a:hover { text-decoration: underline; }
+
+        /* Content */
+        .content { flex: 1; padding: 2rem; overflow-y: auto; }
+        .page-header { margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+        .page-header h2 { font-size: 1.4rem; font-weight: 700; }
+
+        /* Cards */
+        .card { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); padding: 1.5rem; margin-bottom: 1.5rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-card { background: white; border-radius: 8px; padding: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.07); }
+        .stat-card .label { font-size: 0.8rem; color: #64748b; margin-bottom: 0.4rem; }
+        .stat-card .value { font-size: 2rem; font-weight: 700; color: #2563eb; }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 0.75rem 1rem; background: #f8fafc; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; border-bottom: 1px solid #e2e8f0; }
+        td { padding: 0.75rem 1rem; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #f8fafc; }
+        .truncate { max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Badges */
+        .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .badge-green { background: #dcfce7; color: #16a34a; }
+        .badge-red { background: #fee2e2; color: #dc2626; }
+
+        /* Buttons */
+        .btn { display: inline-block; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.875rem; font-weight: 500; cursor: pointer; border: none; text-decoration: none; transition: opacity 0.15s; }
+        .btn:hover { opacity: 0.85; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-secondary { background: #e2e8f0; color: #475569; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-sm { padding: 0.3rem 0.7rem; font-size: 0.8rem; }
+
+        /* Forms */
+        .form-group { margin-bottom: 1.25rem; }
+        label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.4rem; color: #374151; }
+        input[type="text"], input[type="password"], textarea, select {
+            width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 6px;
+            font-size: 0.9rem; outline: none; transition: border-color 0.15s;
+        }
+        input:focus, textarea:focus, select:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+        textarea { resize: vertical; min-height: 80px; }
+        .form-check { display: flex; align-items: center; gap: 0.5rem; }
+        .form-check input { width: auto; }
+        .form-actions { display: flex; gap: 0.75rem; margin-top: 1.5rem; }
+
+        /* Alert */
+        .alert { padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.875rem; }
+        .alert-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h1>SmartBot</h1>
+            <span>Panel Administrativo</span>
+        </div>
+        <nav>
+            <a href="/" {% if request.url.path == '/' %}class="active"{% endif %}>Dashboard</a>
+            <a href="/panel/preguntas" {% if '/preguntas' in request.url.path %}class="active"{% endif %}>Preguntas</a>
+            <a href="/panel/categorias" {% if '/categorias' in request.url.path %}class="active"{% endif %}>Categorías</a>
+            <a href="/panel/config" {% if '/config' in request.url.path %}class="active"{% endif %}>Configuración</a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user">{{ admin }}</div>
+            <a href="/logout">Cerrar sesión</a>
+        </div>
+    </aside>
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

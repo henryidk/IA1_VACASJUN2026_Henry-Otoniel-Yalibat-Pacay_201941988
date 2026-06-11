@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+    <h2>{% if categoria %}Editar Categoría{% else %}Nueva Categoría{% endif %}</h2>
+    <a href="/panel/categorias" class="btn btn-secondary">Cancelar</a>
+</div>
+
+<div class="card">
+    <form method="post" action="{% if categoria %}/panel/categorias/{{ categoria.id }}/editar{% else %}/panel/categorias/nueva{% endif %}">
+        <div class="form-group">
+            <label>Nombre</label>
+            <input type="text" name="nombre" value="{% if categoria %}{{ categoria.nombre }}{% endif %}" required>
+        </div>
+        <div class="form-group">
+            <label>Descripción</label>
+            <textarea name="descripcion">{% if categoria %}{{ categoria.descripcion or '' }}{% endif %}</textarea>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">{% if categoria %}Guardar cambios{% else %}Crear categoría{% endif %}</button>
+            <a href="/panel/categorias" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

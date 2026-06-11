@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+    <h2>Categorías</h2>
+    <a href="/panel/categorias/nueva" class="btn btn-primary">+ Nueva categoría</a>
+</div>
+
+<div class="card">
+    {% if categorias %}
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in categorias %}
+            <tr>
+                <td>{{ c.id }}</td>
+                <td>{{ c.nombre }}</td>
+                <td class="truncate">{{ c.descripcion or '—' }}</td>
+                <td>
+                    <a href="/panel/categorias/{{ c.id }}/editar" class="btn btn-secondary btn-sm">Editar</a>
+                    <form method="post" action="/panel/categorias/{{ c.id }}/eliminar" style="display:inline;" onsubmit="return confirm('¿Eliminar esta categoría?')">
+                        <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:#64748b; text-align:center; padding:2rem;">No hay categorías registradas. <a href="/panel/categorias/nueva">Crear la primera</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

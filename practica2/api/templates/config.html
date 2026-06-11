@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+    <h2>Configuración</h2>
+</div>
+
+{% if request.query_params.get('ok') %}
+<div class="alert alert-success">Configuración guardada correctamente.</div>
+{% endif %}
+
+<div class="card">
+    <form method="post" action="/panel/config">
+        <div class="form-group">
+            <label>ID del chat o grupo de Telegram</label>
+            <input type="text" name="chat_id" value="{{ chat_id }}" placeholder="Ej: -1001234567890">
+            <p style="font-size:0.8rem; color:#64748b; margin-top:0.4rem;">
+                Para obtener el ID de un grupo, agrega el bot al grupo y envía un mensaje. El ID aparecerá en los logs del bot.
+            </p>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

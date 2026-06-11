@@ -10,6 +10,7 @@ from routes.categorias import router as categorias_router
 from routes.preguntas import router as preguntas_router
 from routes.consulta import router as consulta_router
 from routes.config import router as config_router
+from routes.panel import router as panel_router
 import models  # noqa: F401 — necesario para que SQLAlchemy registre las tablas
 
 app = FastAPI(title="SmartBot API")
@@ -30,6 +31,7 @@ app.include_router(categorias_router)
 app.include_router(preguntas_router)
 app.include_router(consulta_router)
 app.include_router(config_router)
+app.include_router(panel_router)
 
 
 @app.get("/health")
