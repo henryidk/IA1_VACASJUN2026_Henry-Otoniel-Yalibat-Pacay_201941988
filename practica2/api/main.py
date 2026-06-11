@@ -22,6 +22,10 @@ templates = Jinja2Templates(directory="templates")
 @app.on_event("startup")
 def startup():
     create_tables()
+    from sqlalchemy import text
+    with engine.connect() as conn:
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS unaccent"))
+        conn.commit()
 
 
 app.include_router(auth_router)

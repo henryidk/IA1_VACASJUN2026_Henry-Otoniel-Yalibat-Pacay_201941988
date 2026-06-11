@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from database import get_db
 from models import Pregunta
 
@@ -14,7 +15,7 @@ def consultar(q: str, db: Session = Depends(get_db)):
     pregunta = (
         db.query(Pregunta)
         .filter(Pregunta.activa == True)
-        .filter(Pregunta.pregunta.ilike(termino))
+        .filter(func.unaccent(Pregunta.pregunta).ilike(func.unaccent(termino)))
         .first()
     )
     if pregunta:
