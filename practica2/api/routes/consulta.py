@@ -28,9 +28,19 @@ def consultar(q: str, db: Session = Depends(get_db)):
             if any(kw in entrada for kw in keywords):
                 return {"encontrado": True, "respuesta": p.respuesta, "pregunta_id": p.id}
 
-    # Paso 2: buscar en el texto de la pregunta
+    # Paso 2: buscar por palabras significativas en el texto de la pregunta
+    palabras = set(w for w in entrada.split() if len(w) >= 4)
+    mejor = None
+    mejor_score = 1
+
     for p in todas:
-        if _normalizar(p.pregunta) in entrada or entrada in _normalizar(p.pregunta):
-            return {"encontrado": True, "respuesta": p.respuesta, "pregunta_id": p.id}
+        pregunta_norm = _normalizar(p.pregunta)
+        score = sum(1 for w in palabras if w in pregunta_norm)
+        if score > mejor_score:
+            mejor_score = score
+            mejor = p
+
+    if mejor:
+        return {"encontrado": True, "respuesta": mejor.respuesta, "pregunta_id": mejor.id}
 
     return {"encontrado": False, "respuesta": MENSAJE_FALLBACK, "pregunta_id": None}
