@@ -70,11 +70,16 @@ async def handle_mensaje(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Ocurrió un error al procesar tu consulta. Intenta de nuevo.")
 
 
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
+    logging.error(f"Error en el bot: {context.error}", exc_info=context.error)
+
+
 if __name__ == "__main__":
     app = ApplicationBuilder().token(TOKEN).build()
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CommandHandler("ayuda", cmd_ayuda))
     app.add_handler(CommandHandler("categorias", cmd_categorias))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_mensaje))
+    app.add_error_handler(error_handler)
     logging.info("Bot iniciado y escuchando mensajes...")
-    app.run_polling()
+    app.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
