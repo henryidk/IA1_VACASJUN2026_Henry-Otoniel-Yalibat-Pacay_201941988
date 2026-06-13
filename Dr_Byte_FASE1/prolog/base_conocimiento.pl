@@ -75,157 +75,200 @@ falla(falla_placa_madre).
 % Formato: descripcion_falla(id, 'Descripción').
 % ============================================================
 
-descripcion_falla(falla_disco_duro,        'Falla en el disco duro').
+descripcion_falla(falla_disco_duro,        'Falla en el disco duro o unidad de almacenamiento').
 descripcion_falla(falla_ram,               'Problema con la memoria RAM').
 descripcion_falla(falla_gpu,               'Problema con la tarjeta gráfica').
-descripcion_falla(falla_fuente_poder,      'Problema con la fuente de poder').
-descripcion_falla(sobrecarga_termica,      'Sobrecalentamiento del procesador').
-descripcion_falla(falla_sistema_operativo, 'Corrupción del sistema operativo').
-descripcion_falla(falla_controlador_usb,   'Falla en los controladores USB').
-descripcion_falla(falla_tarjeta_red,       'Problema con la tarjeta de red inalámbrica').
-descripcion_falla(falla_bateria,           'Batería dañada o agotada').
-descripcion_falla(infeccion_malware,       'Infección por malware o virus').
-descripcion_falla(falla_placa_madre,       'Problema con la placa madre').
+descripcion_falla(falla_fuente_poder,      'Problema con la fuente de alimentación').
+descripcion_falla(sobrecarga_termica,      'Sobrecalentamiento del sistema').
+descripcion_falla(falla_sistema_operativo, 'Corrupción o falla en el sistema operativo').
+descripcion_falla(falla_controlador_usb,   'Falla en los controladores o puertos USB').
+descripcion_falla(falla_tarjeta_red,       'Problema con la tarjeta o adaptador de red inalámbrica').
+descripcion_falla(falla_bateria,           'Batería dañada, agotada o descalibrada').
+descripcion_falla(infeccion_malware,       'Infección por malware, virus o software malicioso').
+descripcion_falla(falla_placa_madre,       'Falla en la placa madre o chipset del sistema').
+
+
+% ============================================================
+% REGLAS DE INFERENCIA: RELACIÓN SÍNTOMA → FALLA
+% Formato: sintoma_falla(Sintoma, Falla).
+%
+% Un síntoma puede apuntar a una o más fallas.
+% El motor suma cuántos síntomas seleccionados apuntan a cada
+% falla y elige la que mayor acumulado tenga.
+%
+% Síntomas exclusivos (apuntan a una sola falla):
+%   garantizan ese diagnóstico cuando aparecen solos.
+% Síntomas compartidos (apuntan a varias fallas):
+%   necesitan combinarse para inclinar la balanza.
+% falla_placa_madre solo acumula cuando varios síntomas
+%   graves coinciden, evitando diagnósticos apresurados.
+% ============================================================
+
+% --- Síntomas exclusivos ---
+% Ruido mecánico es inequívoco de disco fallando.
+sintoma_falla(ruido_disco,        falla_disco_duro).
+
+% USB no detectado → drivers o controlador, no la placa.
+sintoma_falla(no_reconoce_usb,    falla_controlador_usb).
+
+% WiFi sin conexión → adaptador o su driver.
+sintoma_falla(wifi_no_conecta,    falla_tarjeta_red).
+
+% Batería sin carga → batería degradada.
+sintoma_falla(bateria_no_carga,   falla_bateria).
+
+% Fan ruidoso → sistema disipando calor excesivo.
+sintoma_falla(ventilador_ruidoso, sobrecarga_termica).
+
+% --- Síntomas compartidos ---
+
+% Pantalla negra: sin alimentación, GPU sin señal, o fallo total de hardware.
+sintoma_falla(pantalla_negra, falla_fuente_poder).
+sintoma_falla(pantalla_negra, falla_gpu).
+sintoma_falla(pantalla_negra, falla_placa_madre).
+
+% No enciende: fuente muerta, batería agotada (laptop), o placa sin vida.
+sintoma_falla(no_enciende, falla_fuente_poder).
+sintoma_falla(no_enciende, falla_bateria).
+sintoma_falla(no_enciende, falla_placa_madre).
+
+% BSOD: RAM defectuosa (causa #1) o archivos del SO corruptos.
+sintoma_falla(pantalla_azul, falla_ram).
+sintoma_falla(pantalla_azul, falla_sistema_operativo).
+
+% Sin imagen: GPU sin señal, fuente insuficiente, o placa sin POST.
+sintoma_falla(sin_imagen, falla_gpu).
+sintoma_falla(sin_imagen, falla_fuente_poder).
+sintoma_falla(sin_imagen, falla_placa_madre).
+
+% Error de arranque: bootloader/MBR corrupto o disco con errores.
+sintoma_falla(error_arranque, falla_sistema_operativo).
+sintoma_falla(error_arranque, falla_disco_duro).
+
+% Reinicio inesperado: apagado por temperatura o voltaje inestable.
+sintoma_falla(reinicio_inesperado, sobrecarga_termica).
+sintoma_falla(reinicio_inesperado, falla_fuente_poder).
+
+% Congelamiento: throttling por calor o errores de RAM.
+sintoma_falla(congelamiento, sobrecarga_termica).
+sintoma_falla(congelamiento, falla_ram).
+
+% Lentitud extrema: malware en segundo plano o disco envejecido.
+sintoma_falla(lentitud_extrema, infeccion_malware).
+sintoma_falla(lentitud_extrema, falla_disco_duro).
+
+% Apps se cierran: OOM/RAM defectuosa o interferencia de malware.
+sintoma_falla(aplicaciones_se_cierran, falla_ram).
+sintoma_falla(aplicaciones_se_cierran, infeccion_malware).
+
+% Memoria insuficiente: RAM dañada o malware consumiendo recursos.
+sintoma_falla(memoria_insuficiente, falla_ram).
+sintoma_falla(memoria_insuficiente, infeccion_malware).
+
+% No detecta disco: disco desconectado o tabla de particiones dañada.
+sintoma_falla(no_detecta_disco, falla_disco_duro).
+sintoma_falla(no_detecta_disco, falla_sistema_operativo).
+
+% Sobrecalentamiento: sistema térmico saturado o reguladores de voltaje de la placa.
+sintoma_falla(sobrecalentamiento, sobrecarga_termica).
+sintoma_falla(sobrecalentamiento, falla_placa_madre).
 
 
 % ============================================================
 % RECOMENDACIONES POR FALLA
-% Formato: recomendacion(id_falla, 'Texto de recomendación').
-% Una falla puede tener múltiples recomendaciones.
+% Ordenadas de menor a mayor impacto: lo más sencillo primero.
+% Formato: recomendacion(id_falla, 'Texto').
 % ============================================================
 
+recomendacion(falla_disco_duro, 'Verifica que los cables SATA y de alimentación estén bien conectados').
 recomendacion(falla_disco_duro, 'Realiza un respaldo inmediato de tus datos importantes').
-recomendacion(falla_disco_duro, 'Verifica el estado del disco con herramientas como CrystalDiskInfo').
-recomendacion(falla_disco_duro, 'Revisa que los cables SATA estén bien conectados').
-recomendacion(falla_disco_duro, 'Considera reemplazar el disco duro si los errores persisten').
+recomendacion(falla_disco_duro, 'Analiza el estado del disco con CrystalDiskInfo o HD Sentinel').
+recomendacion(falla_disco_duro, 'Reemplaza el disco si el análisis detecta sectores dañados').
 
-recomendacion(falla_ram, 'Retira y vuelve a insertar los módulos de RAM').
-recomendacion(falla_ram, 'Prueba cada módulo de RAM por separado para identificar el defectuoso').
+recomendacion(falla_ram, 'Retira y vuelve a insertar correctamente los módulos de RAM').
+recomendacion(falla_ram, 'Prueba cada módulo por separado para identificar el defectuoso').
 recomendacion(falla_ram, 'Ejecuta MemTest86 para verificar errores en la memoria').
-recomendacion(falla_ram, 'Reemplaza el módulo de RAM dañado si las pruebas fallan').
+recomendacion(falla_ram, 'Reemplaza el módulo de RAM dañado si las pruebas detectan fallas').
 
-recomendacion(falla_gpu, 'Actualiza los drivers de la tarjeta gráfica').
-recomendacion(falla_gpu, 'Verifica que la tarjeta gráfica esté bien insertada en el slot PCIe').
-recomendacion(falla_gpu, 'Comprueba la temperatura de la GPU con GPU-Z').
+recomendacion(falla_gpu, 'Verifica que el cable de video esté bien conectado al monitor').
+recomendacion(falla_gpu, 'Actualiza los drivers de la tarjeta gráfica desde el sitio del fabricante').
+recomendacion(falla_gpu, 'Verifica que la GPU esté bien insertada en el slot PCIe').
+recomendacion(falla_gpu, 'Prueba con otra tarjeta gráfica para confirmar el origen de la falla').
 
-recomendacion(falla_fuente_poder, 'Verifica que el cable de poder esté bien conectado').
-recomendacion(falla_fuente_poder, 'Prueba con otra fuente de poder si es posible').
-recomendacion(falla_fuente_poder, 'Reemplaza la fuente de poder si no entrega voltaje estable').
+recomendacion(falla_fuente_poder, 'Verifica que el cable de poder esté bien conectado al equipo').
+recomendacion(falla_fuente_poder, 'Asegúrate de que el interruptor de la fuente esté en posición ON').
+recomendacion(falla_fuente_poder, 'Prueba con otra fuente de poder de repuesto si es posible').
+recomendacion(falla_fuente_poder, 'Reemplaza la fuente si no entrega voltaje estable al equipo').
 
-recomendacion(sobrecarga_termica, 'Limpia el polvo acumulado en los ventiladores y disipadores').
-recomendacion(sobrecarga_termica, 'Reemplaza la pasta térmica del procesador').
-recomendacion(sobrecarga_termica, 'Asegúrate de que el equipo tenga ventilación adecuada').
-recomendacion(sobrecarga_termica, 'Verifica que todos los ventiladores estén funcionando correctamente').
+recomendacion(sobrecarga_termica, 'Asegúrate de que el equipo esté en un lugar con buena ventilación').
+recomendacion(sobrecarga_termica, 'Limpia el polvo acumulado en ventiladores y disipadores').
+recomendacion(sobrecarga_termica, 'Verifica que todos los ventiladores del equipo estén funcionando').
+recomendacion(sobrecarga_termica, 'Reemplaza la pasta térmica del procesador si el problema persiste').
 
-recomendacion(falla_sistema_operativo, 'Ejecuta el comando sfc /scannow para reparar archivos del sistema').
-recomendacion(falla_sistema_operativo, 'Intenta reparar el sistema operativo desde el medio de instalación').
-recomendacion(falla_sistema_operativo, 'Como último recurso considera reinstalar el sistema operativo').
+recomendacion(falla_sistema_operativo, 'Reinicia el sistema en modo seguro para verificar estabilidad').
+recomendacion(falla_sistema_operativo, 'Ejecuta sfc /scannow para reparar archivos del sistema').
+recomendacion(falla_sistema_operativo, 'Repara el arranque desde el medio de instalación del sistema').
+recomendacion(falla_sistema_operativo, 'Reinstala el sistema operativo como último recurso').
 
-recomendacion(falla_controlador_usb, 'Actualiza los drivers USB desde el administrador de dispositivos').
-recomendacion(falla_controlador_usb, 'Prueba el dispositivo USB en otro puerto o en otra computadora').
+recomendacion(falla_controlador_usb, 'Prueba el dispositivo USB en otro puerto disponible del equipo').
+recomendacion(falla_controlador_usb, 'Reinicia el sistema y vuelve a conectar el dispositivo').
+recomendacion(falla_controlador_usb, 'Actualiza los controladores USB desde el Administrador de dispositivos').
 recomendacion(falla_controlador_usb, 'Desinstala y reinstala los controladores USB desde el sistema').
 
-recomendacion(falla_tarjeta_red, 'Actualiza los drivers de la tarjeta de red inalámbrica').
+recomendacion(falla_tarjeta_red, 'Activa y desactiva el WiFi desde el panel de red del sistema').
+recomendacion(falla_tarjeta_red, 'Reinicia el router y acércate más al punto de acceso inalámbrico').
+recomendacion(falla_tarjeta_red, 'Actualiza los controladores de la tarjeta de red inalámbrica').
 recomendacion(falla_tarjeta_red, 'Restablece la configuración de red del sistema operativo').
-recomendacion(falla_tarjeta_red, 'Verifica que el servicio de red esté activo en el sistema').
 
-recomendacion(falla_bateria, 'Calibra la batería descargándola completamente y recargándola').
-recomendacion(falla_bateria, 'Verifica el estado de la batería con herramientas del fabricante').
+recomendacion(falla_bateria, 'Verifica que el cargador esté bien conectado al equipo y al tomacorriente').
+recomendacion(falla_bateria, 'Prueba con otro cargador compatible si tienes uno disponible').
+recomendacion(falla_bateria, 'Calibra la batería: descárgala completamente y luego cárgala al 100%').
 recomendacion(falla_bateria, 'Reemplaza la batería si su capacidad es inferior al 40%').
 
 recomendacion(infeccion_malware, 'Ejecuta un análisis completo con tu antivirus actualizado').
 recomendacion(infeccion_malware, 'Descarga y ejecuta Malwarebytes para una segunda opinión').
-recomendacion(infeccion_malware, 'Mantén el sistema operativo y aplicaciones siempre actualizados').
+recomendacion(infeccion_malware, 'Actualiza el sistema operativo y todas las aplicaciones instaladas').
 recomendacion(infeccion_malware, 'Evita descargar software de fuentes no oficiales o desconocidas').
 
-recomendacion(falla_placa_madre, 'Inspecciona visualmente la placa madre en busca de capacitores dañados').
-recomendacion(falla_placa_madre, 'Verifica que todos los conectores internos estén correctamente colocados').
+recomendacion(falla_placa_madre, 'Verifica que todos los conectores internos estén bien colocados').
+recomendacion(falla_placa_madre, 'Prueba con componentes mínimos: una RAM, sin GPU discreta').
+recomendacion(falla_placa_madre, 'Inspecciona la placa en busca de capacitores dañados o quemados').
 recomendacion(falla_placa_madre, 'Consulta a un técnico especializado para un diagnóstico avanzado').
 
 
 % ============================================================
-% REGLAS DE INFERENCIA BÁSICAS
-% Formato: diagnostico(ListaSintomas, Falla).
-% Se activan cuando los síntomas indicados están en la lista.
+% MOTOR DE INFERENCIA POR CONTEO DE COINCIDENCIAS
 % ============================================================
 
-diagnostico(Sintomas, falla_disco_duro) :-
-    member(ruido_disco, Sintomas),
-    member(no_detecta_disco, Sintomas).
+% Cuenta cuántos síntomas seleccionados apuntan a una falla.
+% Solo tiene éxito si al menos un síntoma está asociado a esa falla.
+puntaje_falla(Sintomas, Falla, Puntaje) :-
+    falla(Falla),
+    findall(1, (member(S, Sintomas), sintoma_falla(S, Falla)), Coincidencias),
+    Coincidencias \= [],
+    length(Coincidencias, Puntaje).
 
-diagnostico(Sintomas, falla_disco_duro) :-
-    member(ruido_disco, Sintomas),
-    member(error_arranque, Sintomas).
+% Reúne todos los pares Puntaje-Falla para los síntomas dados.
+todos_puntajes(Sintomas, Pares) :-
+    findall(Puntaje-Falla, puntaje_falla(Sintomas, Falla, Puntaje), Pares).
 
-diagnostico(Sintomas, falla_ram) :-
-    member(pantalla_azul, Sintomas),
-    member(reinicio_inesperado, Sintomas).
-
-diagnostico(Sintomas, falla_ram) :-
-    member(congelamiento, Sintomas),
-    member(memoria_insuficiente, Sintomas).
-
-diagnostico(Sintomas, falla_gpu) :-
-    member(sin_imagen, Sintomas),
-    member(pantalla_negra, Sintomas).
-
-diagnostico(Sintomas, falla_fuente_poder) :-
-    member(no_enciende, Sintomas),
-    member(pantalla_negra, Sintomas).
-
-diagnostico(Sintomas, sobrecarga_termica) :-
-    member(sobrecalentamiento, Sintomas),
-    member(ventilador_ruidoso, Sintomas).
-
-diagnostico(Sintomas, sobrecarga_termica) :-
-    member(sobrecalentamiento, Sintomas),
-    member(reinicio_inesperado, Sintomas).
-
-diagnostico(Sintomas, falla_sistema_operativo) :-
-    member(error_arranque, Sintomas),
-    member(pantalla_azul, Sintomas).
-
-diagnostico(Sintomas, falla_sistema_operativo) :-
-    member(error_arranque, Sintomas),
-    member(congelamiento, Sintomas).
-
-diagnostico(Sintomas, falla_controlador_usb) :-
-    member(no_reconoce_usb, Sintomas).
-
-diagnostico(Sintomas, falla_tarjeta_red) :-
-    member(wifi_no_conecta, Sintomas).
-
-diagnostico(Sintomas, falla_bateria) :-
-    member(bateria_no_carga, Sintomas),
-    member(no_enciende, Sintomas).
-
-diagnostico(Sintomas, infeccion_malware) :-
-    member(lentitud_extrema, Sintomas),
-    member(aplicaciones_se_cierran, Sintomas).
-
-diagnostico(Sintomas, infeccion_malware) :-
-    member(lentitud_extrema, Sintomas),
-    member(memoria_insuficiente, Sintomas).
-
-diagnostico(Sintomas, falla_placa_madre) :-
-    member(no_enciende, Sintomas),
-    member(sobrecalentamiento, Sintomas),
-    member(pantalla_negra, Sintomas).
+% Selecciona la falla con mayor número de síntomas coincidentes.
+% En caso de empate, elige la primera falla en orden de declaración.
+% El corte (!) garantiza una única solución.
+mejor_diagnostico(Sintomas, Falla) :-
+    todos_puntajes(Sintomas, Pares),
+    Pares \= [],
+    msort(Pares, Ordenados),
+    last(Ordenados, MaxPuntaje-_),
+    member(MaxPuntaje-Falla, Pares), !.
 
 
 % ============================================================
-% REGLAS AVANZADAS
-% Uso de corte (!), listas, variables y consultas encadenadas.
+% PREDICADOS AUXILIARES
 % ============================================================
 
-% Devuelve el primer diagnóstico encontrado y detiene la búsqueda.
-% El corte (!) evita que Prolog siga buscando más soluciones
-% una vez que encontró la primera coincidencia.
-primer_diagnostico(Sintomas, Falla) :-
-    diagnostico(Sintomas, Falla), !.
-
-% Cuenta cuántos síntomas de una lista están presentes en ListaSintomas.
-% Usa corte (!) para no contar el mismo síntoma dos veces.
+% Cuenta cuántos elementos de ListaRef están en ListaSintomas.
+% El corte (!) evita contar el mismo síntoma más de una vez.
 contar_coincidencias([], _, 0).
 contar_coincidencias([S|Resto], ListaSintomas, Total) :-
     member(S, ListaSintomas), !,
@@ -234,7 +277,7 @@ contar_coincidencias([S|Resto], ListaSintomas, Total) :-
 contar_coincidencias([_|Resto], ListaSintomas, Total) :-
     contar_coincidencias(Resto, ListaSintomas, Total).
 
-% Verifica que todos los síntomas de una lista son válidos en el sistema.
+% Verifica que todos los elementos de la lista son síntomas válidos del sistema.
 todos_sintomas_validos([]).
 todos_sintomas_validos([S|Resto]) :-
     sintoma(S),
@@ -244,14 +287,12 @@ todos_sintomas_validos([S|Resto]) :-
 todas_recomendaciones(Falla, Lista) :-
     findall(R, recomendacion(Falla, R), Lista).
 
-% Reúne todos los diagnósticos posibles dados los síntomas, sin duplicados.
+% Reúne todos los diagnósticos posibles con sus puntajes.
 todos_diagnosticos(Sintomas, Lista) :-
-    findall(F, diagnostico(Sintomas, F), ListaConDuplicados),
-    list_to_set(ListaConDuplicados, Lista).
+    findall(Puntaje-Falla, puntaje_falla(Sintomas, Falla, Puntaje), Lista).
 
-% Genera el diagnóstico completo: falla + lista de recomendaciones.
-% Encadena primer_diagnostico y todas_recomendaciones en una sola consulta.
+% Punto de entrada principal: valida síntomas, determina falla y reúne recomendaciones.
 diagnostico_completo(Sintomas, Falla, Recomendaciones) :-
     todos_sintomas_validos(Sintomas),
-    primer_diagnostico(Sintomas, Falla),
+    mejor_diagnostico(Sintomas, Falla),
     todas_recomendaciones(Falla, Recomendaciones).
