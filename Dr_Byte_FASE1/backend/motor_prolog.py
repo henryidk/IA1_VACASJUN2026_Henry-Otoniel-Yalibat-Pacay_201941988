@@ -14,6 +14,13 @@ def _get_prolog():
     return _prolog
 
 
+def recargar_prolog():
+    global _prolog
+    with _lock:
+        _prolog = None
+        _get_prolog()
+
+
 def obtener_diagnostico(sintomas):
     with _lock:
         prolog = _get_prolog()
