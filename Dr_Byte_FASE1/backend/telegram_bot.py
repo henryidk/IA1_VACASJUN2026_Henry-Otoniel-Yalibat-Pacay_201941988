@@ -37,12 +37,22 @@ def verificar_conexion():
 def enviar_notificacion(id_diagnostico, fecha, sintomas, descripcion, recomendaciones):
     cfg = bot_config.leer_config()
 
-    if not cfg['activo']:
-        return
-
     token      = cfg['token']   or config.TELEGRAM_TOKEN
     chat_id    = cfg['chat_id'] or config.TELEGRAM_CHAT_ID
     encabezado = cfg['encabezado']
+
+    if not cfg['activo']:
+        async def _mantenimiento():
+            bot = get_bot(token)
+            await bot.send_message(
+                chat_id=chat_id,
+                text='Lo sentimos, el bot está en mantenimiento. Regresa más tarde.',
+            )
+        try:
+            asyncio.run(_mantenimiento())
+        except TelegramError as e:
+            print(f'Error al enviar mensaje de mantenimiento: {e}')
+        return
 
     recomendaciones_texto = '\n'.join([f'  • {r}' for r in recomendaciones])
     sintomas_texto = ', '.join(sintomas)
