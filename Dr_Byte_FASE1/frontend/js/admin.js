@@ -4,7 +4,7 @@ const API = '/api/admin';
 document.addEventListener('DOMContentLoaded', cargarTodo);
 
 async function cargarTodo() {
-  await Promise.all([cargarSintomas(), cargarFallas()]);
+  await Promise.all([cargarSintomas(), cargarFallas(), cargarConfigBot()]);
 }
 
 // ------------------------------------------------------------ AUTO ID
@@ -239,4 +239,52 @@ async function eliminarRecomendacion(idFalla, texto) {
   });
   mostrarAlerta(data.mensaje || data.error, ok ? 'success' : 'danger');
   if (ok) await cargarFallas();
+}
+
+// ============================================================ CONFIG BOT
+
+async function cargarConfigBot() {
+  const { ok, data } = await apiFetch(`${API}/config/bot`);
+  if (!ok) return;
+
+  const estadoToken = document.getElementById('cfg-token-estado');
+  estadoToken.textContent = data.token
+    ? `Token guardado (${data.token})`
+    : 'usando el del .env';
+  estadoToken.style.color = data.token ? 'var(--color-primario)' : '';
+
+  document.getElementById('cfg-chat-id').value    = data.chat_id    || '';
+  document.getElementById('cfg-encabezado').value = data.encabezado || '';
+  document.getElementById('cfg-activo').checked   = data.activo;
+  actualizarEtiquetaActivo();
+}
+
+function actualizarEtiquetaActivo() {
+  const activo = document.getElementById('cfg-activo').checked;
+  const label  = document.getElementById('cfg-activo-label');
+  label.textContent = activo ? 'Activo' : 'Inactivo';
+  label.style.color = activo ? 'var(--color-primario)' : '#6c757d';
+}
+
+async function guardarConfigBot() {
+  const token      = document.getElementById('cfg-token').value.trim();
+  const chatId     = document.getElementById('cfg-chat-id').value.trim();
+  const activo     = document.getElementById('cfg-activo').checked;
+  const encabezado = document.getElementById('cfg-encabezado').value.trim();
+
+  if (!encabezado) {
+    mostrarAlerta('El encabezado no puede estar vacío.', 'warning');
+    return;
+  }
+
+  const { ok, data } = await apiFetch(`${API}/config/bot`, {
+    method: 'PUT',
+    body: JSON.stringify({ token, chat_id: chatId, activo, encabezado }),
+  });
+
+  mostrarAlerta(data.mensaje || data.error, ok ? 'success' : 'danger');
+  if (ok) {
+    document.getElementById('cfg-token').value = '';
+    await cargarConfigBot();
+  }
 }
