@@ -23,7 +23,6 @@ def upgrade() -> None:
         sa.Column("nombre", sa.String(120), nullable=False),
         sa.Column("email", sa.String(150), nullable=False),
         sa.Column("password_hash", sa.String(255), nullable=False),
-        sa.Column("rol", sa.String(30), nullable=False, server_default="operador"),
         sa.Column("creado_en", sa.DateTime(), nullable=False, server_default=sa.func.now()),
     )
     op.create_index("ix_usuarios_email", "usuarios", ["email"], unique=True)

@@ -13,7 +13,6 @@ class Usuario(Base):
     nombre: Mapped[str] = mapped_column(String(120), nullable=False)
     email: Mapped[str] = mapped_column(String(150), unique=True, nullable=False, index=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-    rol: Mapped[str] = mapped_column(String(30), default="operador", nullable=False)
     creado_en: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     facturas = relationship("Factura", back_populates="usuario")
