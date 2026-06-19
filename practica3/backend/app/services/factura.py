@@ -41,3 +41,11 @@ def crear_factura(db: Session, nombre_archivo: str, usuario_id: int) -> Factura:
 
 def obtener_factura(db: Session, factura_id: int) -> Factura | None:
     return db.query(Factura).filter(Factura.id == factura_id).first()
+
+
+def actualizar_campos_factura(db: Session, factura: Factura, cambios: dict) -> Factura:
+    for campo, valor in cambios.items():
+        setattr(factura, campo, valor)
+    db.commit()
+    db.refresh(factura)
+    return factura

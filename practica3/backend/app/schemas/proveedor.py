@@ -3,7 +3,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-NIT_PATTERN = re.compile(r"^\d{1,10}-?[\dKk]$")
+NIT_PATTERN = re.compile(r"^\d{1,8}-?[\dKk]$")
 
 
 class ProveedorBase(BaseModel):

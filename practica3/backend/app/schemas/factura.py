@@ -22,3 +22,12 @@ class FacturaOut(BaseModel):
 
 class FacturaDetalle(FacturaOut):
     texto_ocr: str | None
+
+
+class FacturaUpdate(BaseModel):
+    numero_factura: str | None = None
+    fecha: date | None = None
+    proveedor_id: int | None = None
+    subtotal: Decimal | None = None
+    impuestos: Decimal | None = None
+    total: Decimal | None = None

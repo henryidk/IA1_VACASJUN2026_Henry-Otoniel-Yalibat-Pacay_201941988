@@ -8,10 +8,19 @@ from app.core.deps import get_current_user
 from app.models.bitacora import TipoEvento
 from app.models.factura import EstadoFactura
 from app.models.usuario import Usuario
-from app.schemas.factura import FacturaDetalle, FacturaOut
+from app.schemas.factura import FacturaDetalle, FacturaOut, FacturaUpdate
 from app.services.bitacora import registrar_evento
-from app.services.factura import crear_factura, extension_valida, listar_facturas, obtener_factura
+from app.services.factura import (
+    actualizar_campos_factura,
+    crear_factura,
+    extension_valida,
+    listar_facturas,
+    obtener_factura,
+)
 from app.services.procesamiento import procesar_factura
+from app.services.proveedor import obtener_proveedor
+from app.services.rpa import registrar_factura_en_formulario
+from app.services.validacion import revalidar_factura
 
 router = APIRouter(
     prefix="/api/facturas",
@@ -69,3 +78,78 @@ def obtener(factura_id: int, db: Session = Depends(get_db)):
     if factura is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Factura no encontrada")
     return factura
+
+
+@router.put("/{factura_id}", response_model=FacturaDetalle)
+def actualizar(
+    factura_id: int,
+    datos: FacturaUpdate,
+    db: Session = Depends(get_db),
+    usuario_actual: Usuario = Depends(get_current_user),
+):
+    factura = obtener_factura(db, factura_id)
+    if factura is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Factura no encontrada")
+
+    cambios = datos.model_dump(exclude_unset=True)
+    if cambios.get("proveedor_id") is not None and obtener_proveedor(db, cambios["proveedor_id"]) is None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="El proveedor indicado no existe")
+
+    if cambios:
+        actualizar_campos_factura(db, factura, cambios)
+
+    errores = revalidar_factura(factura)
+    db.commit()
+
+    registrar_evento(
+        db,
+        factura_id=factura.id,
+        usuario_id=usuario_actual.id,
+        tipo_evento=TipoEvento.VALIDACION,
+        estado=factura.estado,
+        documento=factura.nombre_archivo,
+        resultado="Validación exitosa tras corrección manual" if not errores else "; ".join(errores),
+    )
+    return factura
+
+
+@router.post("/{factura_id}/rpa")
+def disparar_rpa(
+    factura_id: int,
+    db: Session = Depends(get_db),
+    usuario_actual: Usuario = Depends(get_current_user),
+):
+    factura = obtener_factura(db, factura_id)
+    if factura is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Factura no encontrada")
+
+    if factura.estado != EstadoFactura.PROCESADO:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Solo se puede registrar con RPA una factura en estado 'procesado'",
+        )
+
+    try:
+        resultado = registrar_factura_en_formulario(factura)
+    except Exception as exc:
+        registrar_evento(
+            db,
+            factura_id=factura.id,
+            usuario_id=usuario_actual.id,
+            tipo_evento=TipoEvento.RPA,
+            estado="error",
+            documento=factura.nombre_archivo,
+            resultado=f"Error ejecutando RPA: {exc}",
+        )
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="No se pudo completar el registro automático (RPA)") from exc
+
+    registrar_evento(
+        db,
+        factura_id=factura.id,
+        usuario_id=usuario_actual.id,
+        tipo_evento=TipoEvento.RPA,
+        estado="exitoso",
+        documento=factura.nombre_archivo,
+        resultado=resultado,
+    )
+    return {"detail": resultado}
