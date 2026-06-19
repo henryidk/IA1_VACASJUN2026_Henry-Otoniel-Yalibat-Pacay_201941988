@@ -34,6 +34,7 @@ def listar_bitacora(
     usuario_id: int | None = None,
     estado: str | None = None,
     factura_id: int | None = None,
+    tipo_evento: str | None = None,
     fecha_desde: date | None = None,
     fecha_hasta: date | None = None,
 ) -> list[Bitacora]:
@@ -44,6 +45,8 @@ def listar_bitacora(
         query = query.filter(Bitacora.estado == estado)
     if factura_id:
         query = query.filter(Bitacora.factura_id == factura_id)
+    if tipo_evento:
+        query = query.filter(Bitacora.tipo_evento == tipo_evento)
     if fecha_desde:
         query = query.filter(Bitacora.fecha_hora >= fecha_desde)
     if fecha_hasta:

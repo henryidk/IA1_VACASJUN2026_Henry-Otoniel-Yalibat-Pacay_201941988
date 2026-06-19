@@ -20,6 +20,7 @@ def listar(
     usuario_id: int | None = None,
     estado: str | None = None,
     factura_id: int | None = None,
+    tipo_evento: str | None = None,
     fecha_desde: date | None = None,
     fecha_hasta: date | None = None,
     db: Session = Depends(get_db),
@@ -29,6 +30,7 @@ def listar(
         usuario_id=usuario_id,
         estado=estado,
         factura_id=factura_id,
+        tipo_evento=tipo_evento,
         fecha_desde=fecha_desde,
         fecha_hasta=fecha_hasta,
     )

@@ -51,13 +51,16 @@ def reporte_pdf(
         db, estado=estado, proveedor_id=proveedor_id, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta
     )
     contenido = generar_reporte_pdf(facturas)
-    registrar_reporte(
+    reporte = registrar_reporte(
         db, usuario_actual.id, FormatoReporte.PDF, _filtros_dict(estado, proveedor_id, fecha_desde, fecha_hasta)
     )
     return StreamingResponse(
         io.BytesIO(contenido),
         media_type="application/pdf",
-        headers={"Content-Disposition": "attachment; filename=reporte_facturas.pdf"},
+        headers={
+            "Content-Disposition": "attachment; filename=reporte_facturas.pdf",
+            "X-Reporte-Id": str(reporte.id),
+        },
     )
 
 
@@ -74,13 +77,16 @@ def reporte_excel(
         db, estado=estado, proveedor_id=proveedor_id, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta
     )
     contenido = generar_reporte_excel(facturas)
-    registrar_reporte(
+    reporte = registrar_reporte(
         db, usuario_actual.id, FormatoReporte.EXCEL, _filtros_dict(estado, proveedor_id, fecha_desde, fecha_hasta)
     )
     return StreamingResponse(
         io.BytesIO(contenido),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": "attachment; filename=reporte_facturas.xlsx"},
+        headers={
+            "Content-Disposition": "attachment; filename=reporte_facturas.xlsx",
+            "X-Reporte-Id": str(reporte.id),
+        },
     )
 
 
