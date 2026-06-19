@@ -23,7 +23,8 @@ function cerrarSesion() {
 async function apiFetch(ruta, opciones = {}) {
   const token = obtenerToken();
   const headers = { ...(opciones.headers || {}) };
-  if (!(opciones.body instanceof URLSearchParams)) {
+  const sinContentTypeAutomatico = opciones.body instanceof URLSearchParams || opciones.body instanceof FormData;
+  if (!sinContentTypeAutomatico) {
     headers["Content-Type"] = "application/json";
   }
   if (token) {
