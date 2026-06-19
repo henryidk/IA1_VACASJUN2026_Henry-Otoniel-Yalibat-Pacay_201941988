@@ -1,6 +1,6 @@
 import io
 import json
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 
 from openpyxl import Workbook
@@ -12,7 +12,8 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, Tabl
 from sqlalchemy.orm import Session
 
 from app.models.factura import Factura
-from app.models.reporte import Reporte
+from app.models.reporte import FormatoReporte, Reporte
+from app.services.factura import listar_facturas
 
 ENCABEZADO = ["No. Factura", "Fecha", "Proveedor", "Subtotal", "Impuestos", "Total", "Estado"]
 
@@ -93,3 +94,29 @@ def registrar_reporte(db: Session, usuario_id: int, formato: str, filtros: dict)
     db.commit()
     db.refresh(reporte)
     return reporte
+
+
+def obtener_reporte(db: Session, reporte_id: int) -> Reporte | None:
+    return db.query(Reporte).filter(Reporte.id == reporte_id).first()
+
+
+def regenerar_reporte(db: Session, reporte: Reporte) -> tuple[bytes, str, str]:
+    filtros = json.loads(reporte.filtros) if reporte.filtros else {}
+    fecha_desde = date.fromisoformat(filtros["fecha_desde"]) if filtros.get("fecha_desde") else None
+    fecha_hasta = date.fromisoformat(filtros["fecha_hasta"]) if filtros.get("fecha_hasta") else None
+
+    facturas = listar_facturas(
+        db,
+        estado=filtros.get("estado"),
+        proveedor_id=filtros.get("proveedor_id"),
+        fecha_desde=fecha_desde,
+        fecha_hasta=fecha_hasta,
+    )
+
+    if reporte.formato == FormatoReporte.EXCEL:
+        return (
+            generar_reporte_excel(facturas),
+            "reporte_facturas.xlsx",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+    return generar_reporte_pdf(facturas), "reporte_facturas.pdf", "application/pdf"
