@@ -6,6 +6,7 @@ from app.models.factura import EstadoFactura, Factura
 from app.services.bitacora import registrar_evento
 from app.services.cv import preparar_para_ocr
 from app.services.ocr import extraer_campos, extraer_texto
+from app.services.validacion import validar_factura
 
 logger = logging.getLogger("smartinvoice")
 
@@ -39,8 +40,21 @@ def procesar_factura(factura_id: int, contenido: bytes, nombre_archivo: str, usu
                 documento=factura.nombre_archivo,
                 resultado="Texto extraído y campos parseados correctamente",
             )
+
+            errores = validar_factura(db, factura, campos["nit"], campos["proveedor_nombre"])
+            db.commit()
+
+            registrar_evento(
+                db,
+                factura_id=factura.id,
+                usuario_id=usuario_id,
+                tipo_evento=TipoEvento.VALIDACION,
+                estado=factura.estado,
+                documento=factura.nombre_archivo,
+                resultado="Validación exitosa" if not errores else "; ".join(errores),
+            )
         except Exception as exc:
-            logger.exception("Error procesando OCR de la factura %s", factura_id)
+            logger.exception("Error procesando la factura %s", factura_id)
             factura.estado = EstadoFactura.ERROR
             db.commit()
             registrar_evento(
@@ -50,7 +64,7 @@ def procesar_factura(factura_id: int, contenido: bytes, nombre_archivo: str, usu
                 tipo_evento=TipoEvento.OCR,
                 estado=EstadoFactura.ERROR,
                 documento=factura.nombre_archivo,
-                resultado=f"Error durante el procesamiento OCR: {exc}",
+                resultado=f"Error durante el procesamiento: {exc}",
             )
     finally:
         db.close()
