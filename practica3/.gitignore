@@ -23,3 +23,7 @@ postgres_data/
 # Sistema operativo
 .DS_Store
 Thumbs.db
+
+# Notas internas de planificación (no deben subirse al repo)
+plan_trabajo.md
+explicacion.md
