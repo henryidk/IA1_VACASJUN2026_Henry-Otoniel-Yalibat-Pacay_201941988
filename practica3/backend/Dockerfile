@@ -5,10 +5,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     CHROME_BIN=/usr/bin/chromium \
     CHROMEDRIVER_PATH=/usr/bin/chromedriver
 
-# tesseract-ocr: motor OCR
+# tesseract-ocr + tesseract-ocr-spa: motor OCR con datos de entrenamiento en español
 # chromium + chromium-driver: navegador headless para el RPA con Selenium
 RUN apt-get update && apt-get install -y --no-install-recommends \
         tesseract-ocr \
+        tesseract-ocr-spa \
         chromium \
         chromium-driver \
         libglib2.0-0 \

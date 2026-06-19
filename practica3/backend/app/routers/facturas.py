@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -9,6 +9,7 @@ from app.models.usuario import Usuario
 from app.schemas.factura import FacturaOut
 from app.services.bitacora import registrar_evento
 from app.services.factura import crear_factura, extension_valida
+from app.services.procesamiento import procesar_factura
 
 router = APIRouter(
     prefix="/api/facturas",
@@ -20,6 +21,7 @@ router = APIRouter(
 @router.post("", response_model=FacturaOut, status_code=status.HTTP_201_CREATED)
 async def cargar_factura(
     archivo: UploadFile,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     usuario_actual: Usuario = Depends(get_current_user),
 ):
@@ -43,4 +45,6 @@ async def cargar_factura(
         documento=factura.nombre_archivo,
         resultado="Factura cargada correctamente, pendiente de procesamiento",
     )
+
+    background_tasks.add_task(procesar_factura, factura.id, contenido, factura.nombre_archivo, usuario_actual.id)
     return factura

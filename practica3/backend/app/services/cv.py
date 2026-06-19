@@ -49,6 +49,12 @@ def corregir_inclinacion(imagen_binarizada: np.ndarray) -> np.ndarray:
     else:
         angulo = -angulo
 
+    # En texto disperso (pocas líneas, mucho espacio en blanco) minAreaRect puede
+    # devolver ángulos poco confiables; solo se corrige una inclinación plausible
+    # de una foto/escaneo real (unos pocos grados), nunca una rotación drástica.
+    if abs(angulo) < 0.5 or abs(angulo) > 15:
+        return imagen_binarizada
+
     alto, ancho = imagen_binarizada.shape[:2]
     centro = (ancho // 2, alto // 2)
     matriz_rotacion = cv2.getRotationMatrix2D(centro, angulo, 1.0)
@@ -61,14 +67,19 @@ def corregir_inclinacion(imagen_binarizada: np.ndarray) -> np.ndarray:
     )
 
 
-def detectar_contorno_documento(imagen_binarizada: np.ndarray) -> tuple[int, int, int, int]:
+def detectar_contorno_documento(imagen_binarizada: np.ndarray, margen: int = 15) -> tuple[int, int, int, int]:
     invertida = cv2.bitwise_not(imagen_binarizada)
-    contornos, _ = cv2.findContours(invertida, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    if not contornos:
-        alto, ancho = imagen_binarizada.shape[:2]
+    alto, ancho = imagen_binarizada.shape[:2]
+    puntos = cv2.findNonZero(invertida)
+    if puntos is None:
         return (0, 0, ancho, alto)
-    contorno_mayor = max(contornos, key=cv2.contourArea)
-    return cv2.boundingRect(contorno_mayor)
+
+    x, y, w, h = cv2.boundingRect(puntos)
+    x = max(x - margen, 0)
+    y = max(y - margen, 0)
+    w = min(w + 2 * margen, ancho - x)
+    h = min(h + 2 * margen, alto - y)
+    return (x, y, w, h)
 
 
 def recortar_documento(imagen_binarizada: np.ndarray) -> np.ndarray:
