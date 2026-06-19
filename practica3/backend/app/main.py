@@ -4,7 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.routers import auth, facturas, proveedores
+from app.routers import auth, bitacora, facturas, proveedores
 
 logger = logging.getLogger("smartinvoice")
 
@@ -21,6 +21,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(proveedores.router)
 app.include_router(facturas.router)
+app.include_router(bitacora.router)
 
 
 @app.exception_handler(Exception)

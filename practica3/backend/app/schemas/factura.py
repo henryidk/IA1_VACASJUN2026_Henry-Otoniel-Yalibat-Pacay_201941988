@@ -18,3 +18,7 @@ class FacturaOut(BaseModel):
     creado_en: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class FacturaDetalle(FacturaOut):
+    texto_ocr: str | None

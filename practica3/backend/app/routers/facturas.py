@@ -1,3 +1,5 @@
+from datetime import date
+
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
@@ -6,9 +8,9 @@ from app.core.deps import get_current_user
 from app.models.bitacora import TipoEvento
 from app.models.factura import EstadoFactura
 from app.models.usuario import Usuario
-from app.schemas.factura import FacturaOut
+from app.schemas.factura import FacturaDetalle, FacturaOut
 from app.services.bitacora import registrar_evento
-from app.services.factura import crear_factura, extension_valida
+from app.services.factura import crear_factura, extension_valida, listar_facturas, obtener_factura
 from app.services.procesamiento import procesar_factura
 
 router = APIRouter(
@@ -47,4 +49,23 @@ async def cargar_factura(
     )
 
     background_tasks.add_task(procesar_factura, factura.id, contenido, factura.nombre_archivo, usuario_actual.id)
+    return factura
+
+
+@router.get("", response_model=list[FacturaOut])
+def listar(
+    estado: str | None = None,
+    proveedor_id: int | None = None,
+    fecha_desde: date | None = None,
+    fecha_hasta: date | None = None,
+    db: Session = Depends(get_db),
+):
+    return listar_facturas(db, estado=estado, proveedor_id=proveedor_id, fecha_desde=fecha_desde, fecha_hasta=fecha_hasta)
+
+
+@router.get("/{factura_id}", response_model=FacturaDetalle)
+def obtener(factura_id: int, db: Session = Depends(get_db)):
+    factura = obtener_factura(db, factura_id)
+    if factura is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Factura no encontrada")
     return factura
