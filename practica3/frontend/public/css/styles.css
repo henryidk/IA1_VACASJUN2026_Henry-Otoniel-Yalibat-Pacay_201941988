@@ -1,0 +1,75 @@
+:root {
+  --color-oscuro:   #0f172a;
+  --color-primario: #2563eb;
+  --color-acento:   #38bdf8;
+  --color-fondo:    #f8fafc;
+  --color-alerta:   #d97706;
+}
+
+body {
+  background-color: var(--color-fondo);
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+}
+
+/* --------------------------------------------------------------- NAVBAR */
+.navbar {
+  background-color: var(--color-oscuro) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link.active {
+  color: var(--color-acento) !important;
+}
+
+/* ---------------------------------------------------- BOTONES PRIMARIOS */
+.btn-primary {
+  background-color: var(--color-primario);
+  border-color: var(--color-primario);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--color-oscuro);
+  border-color: var(--color-oscuro);
+}
+
+/* ---------------------------------------------------------------- CARDS */
+.card {
+  border-color: #dbe4ef;
+}
+
+.card-header {
+  border-bottom-color: #dbe4ef;
+}
+
+.card-header .bi {
+  color: var(--color-primario);
+}
+
+/* ------------------------------------------------------------- LOGIN */
+.login-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #0f172a 0%, #1e3a8a 100%);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+}
+
+/* ------------------------------------------------------ ESTADOS / BADGES */
+.badge-pendiente { background-color: #94a3b8; }
+.badge-procesado { background-color: #16a34a; }
+.badge-rechazado { background-color: #dc2626; }
+.badge-error      { background-color: #7c2d12; }
+
+/* ------------------------------------------------------ INPUTS FOCUS */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--color-primario);
+  box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.2);
+}

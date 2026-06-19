@@ -1,0 +1,42 @@
+// Actualizar con la URL pública del backend al desplegar en Render (Grupo 18)
+const API_BASE_URL = "http://localhost:8000";
+
+const CLAVE_TOKEN = "smartinvoice_token";
+
+function obtenerToken() {
+  return localStorage.getItem(CLAVE_TOKEN);
+}
+
+function guardarToken(token) {
+  localStorage.setItem(CLAVE_TOKEN, token);
+}
+
+function eliminarToken() {
+  localStorage.removeItem(CLAVE_TOKEN);
+}
+
+function cerrarSesion() {
+  eliminarToken();
+  window.location.href = "login.html";
+}
+
+async function apiFetch(ruta, opciones = {}) {
+  const token = obtenerToken();
+  const headers = { ...(opciones.headers || {}) };
+  if (!(opciones.body instanceof URLSearchParams)) {
+    headers["Content-Type"] = "application/json";
+  }
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const respuesta = await fetch(`${API_BASE_URL}${ruta}`, { ...opciones, headers });
+
+  if (respuesta.status === 401) {
+    cerrarSesion();
+    throw new Error("Sesión expirada, inicia sesión de nuevo");
+  }
+
+  const cuerpo = respuesta.status === 204 ? null : await respuesta.json().catch(() => null);
+  return { ok: respuesta.ok, status: respuesta.status, data: cuerpo };
+}
