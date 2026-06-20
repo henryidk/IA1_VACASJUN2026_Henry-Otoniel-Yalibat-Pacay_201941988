@@ -54,6 +54,15 @@ def reporte_pdf(
     reporte = registrar_reporte(
         db, usuario_actual.id, FormatoReporte.PDF, _filtros_dict(estado, proveedor_id, fecha_desde, fecha_hasta)
     )
+    registrar_evento(
+        db,
+        factura_id=None,
+        usuario_id=usuario_actual.id,
+        tipo_evento=TipoEvento.REPORTE,
+        estado="generado",
+        documento="reporte_facturas.pdf",
+        resultado=f"Reporte PDF generado con {len(facturas)} factura(s)",
+    )
     return StreamingResponse(
         io.BytesIO(contenido),
         media_type="application/pdf",
@@ -79,6 +88,15 @@ def reporte_excel(
     contenido = generar_reporte_excel(facturas)
     reporte = registrar_reporte(
         db, usuario_actual.id, FormatoReporte.EXCEL, _filtros_dict(estado, proveedor_id, fecha_desde, fecha_hasta)
+    )
+    registrar_evento(
+        db,
+        factura_id=None,
+        usuario_id=usuario_actual.id,
+        tipo_evento=TipoEvento.REPORTE,
+        estado="generado",
+        documento="reporte_facturas.xlsx",
+        resultado=f"Reporte Excel generado con {len(facturas)} factura(s)",
     )
     return StreamingResponse(
         io.BytesIO(contenido),
