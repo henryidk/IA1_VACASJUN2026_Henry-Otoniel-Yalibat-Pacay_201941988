@@ -45,6 +45,19 @@ def _evaluar_campos_basicos(factura: Factura) -> list[dict]:
     return errores
 
 
+def _no_se_leyo_nada(factura: Factura) -> bool:
+    """True si el OCR no logró extraer absolutamente ningún campo útil
+    (documento en blanco, ilegible o puro ruido)."""
+    return (
+        factura.numero_factura is None
+        and factura.fecha is None
+        and factura.subtotal is None
+        and factura.impuestos is None
+        and factura.total is None
+        and factura.proveedor_id is None
+    )
+
+
 def validar_factura(
     db: Session,
     factura: Factura,
@@ -76,7 +89,7 @@ def validar_factura(
                 }
             )
 
-    factura.estado = EstadoFactura.RECHAZADO if errores else EstadoFactura.PROCESADO
+    factura.estado = EstadoFactura.RECHAZADO if _no_se_leyo_nada(factura) else EstadoFactura.PROCESADO
     return errores
 
 
@@ -84,7 +97,7 @@ def revalidar_factura(factura: Factura) -> list[dict]:
     """Re-validación tras una corrección manual: los campos (incluido proveedor_id)
     ya fueron ajustados directamente por el usuario, solo se vuelven a comprobar."""
     errores = evaluar_errores_actuales(factura)
-    factura.estado = EstadoFactura.RECHAZADO if errores else EstadoFactura.PROCESADO
+    factura.estado = EstadoFactura.RECHAZADO if _no_se_leyo_nada(factura) else EstadoFactura.PROCESADO
     return errores
 
 

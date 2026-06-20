@@ -9,3 +9,4 @@ class RegistroSimuladoRequest(BaseModel):
     subtotal: str
     impuestos: str
     total: str
+    estado_ocr: str = ""

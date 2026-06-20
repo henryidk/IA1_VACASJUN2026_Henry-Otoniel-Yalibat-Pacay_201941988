@@ -36,6 +36,7 @@ def registrar_factura_en_formulario(factura: Factura) -> dict:
         "subtotal": str(factura.subtotal) if factura.subtotal is not None else "(vacío)",
         "impuestos": str(factura.impuestos) if factura.impuestos is not None else "(vacío)",
         "total": str(factura.total) if factura.total is not None else "(vacío)",
+        "estado_ocr": factura.estado,
     }
 
     driver = _crear_driver()
@@ -49,6 +50,7 @@ def registrar_factura_en_formulario(factura: Factura) -> dict:
         driver.find_element(By.ID, "subtotal").send_keys(str(factura.subtotal) if factura.subtotal is not None else "")
         driver.find_element(By.ID, "impuestos").send_keys(str(factura.impuestos) if factura.impuestos is not None else "")
         driver.find_element(By.ID, "total").send_keys(str(factura.total) if factura.total is not None else "")
+        driver.find_element(By.ID, "estado_ocr").send_keys(factura.estado)
         driver.find_element(By.ID, "guardar").click()
 
         WebDriverWait(driver, 10).until(
