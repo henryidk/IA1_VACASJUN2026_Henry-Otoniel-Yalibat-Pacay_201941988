@@ -51,7 +51,7 @@ def procesar_factura(factura_id: int, contenido: bytes, nombre_archivo: str, usu
                 tipo_evento=TipoEvento.VALIDACION,
                 estado=factura.estado,
                 documento=factura.nombre_archivo,
-                resultado="Validación exitosa" if not errores else "; ".join(errores),
+                resultado="Validación exitosa" if not errores else "; ".join(e["mensaje"] for e in errores),
             )
         except Exception as exc:
             logger.exception("Error procesando la factura %s", factura_id)

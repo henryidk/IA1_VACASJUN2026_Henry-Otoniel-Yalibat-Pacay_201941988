@@ -8,7 +8,7 @@ from app.core.deps import get_current_user
 from app.models.bitacora import TipoEvento
 from app.models.factura import EstadoFactura
 from app.models.usuario import Usuario
-from app.schemas.factura import FacturaDetalle, FacturaOut, FacturaUpdate
+from app.schemas.factura import ErrorValidacion, FacturaDetalle, FacturaOut, FacturaUpdate
 from app.services.bitacora import registrar_evento
 from app.services.factura import (
     actualizar_campos_factura,
@@ -20,7 +20,7 @@ from app.services.factura import (
 from app.services.procesamiento import procesar_factura
 from app.services.proveedor import obtener_proveedor
 from app.services.rpa import registrar_factura_en_formulario
-from app.services.validacion import revalidar_factura
+from app.services.validacion import evaluar_errores_actuales, revalidar_factura
 
 router = APIRouter(
     prefix="/api/facturas",
@@ -77,7 +77,11 @@ def obtener(factura_id: int, db: Session = Depends(get_db)):
     factura = obtener_factura(db, factura_id)
     if factura is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Factura no encontrada")
-    return factura
+
+    detalle = FacturaDetalle.model_validate(factura)
+    if factura.estado != EstadoFactura.PENDIENTE:
+        detalle.errores_validacion = [ErrorValidacion(**e) for e in evaluar_errores_actuales(factura)]
+    return detalle
 
 
 @router.put("/{factura_id}", response_model=FacturaDetalle)
@@ -108,9 +112,16 @@ def actualizar(
         tipo_evento=TipoEvento.VALIDACION,
         estado=factura.estado,
         documento=factura.nombre_archivo,
-        resultado="Validación exitosa tras corrección manual" if not errores else "; ".join(errores),
+        resultado=(
+            "Validación exitosa tras corrección manual"
+            if not errores
+            else "; ".join(e["mensaje"] for e in errores)
+        ),
     )
-    return factura
+
+    detalle = FacturaDetalle.model_validate(factura)
+    detalle.errores_validacion = [ErrorValidacion(**e) for e in errores]
+    return detalle
 
 
 @router.post("/{factura_id}/rpa")

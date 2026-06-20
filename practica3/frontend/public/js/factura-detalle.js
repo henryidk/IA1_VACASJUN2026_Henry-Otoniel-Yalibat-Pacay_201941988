@@ -24,6 +24,38 @@ function badgeEstado(estado) {
   return `<span class="badge badge-${estado}">${etiquetas[estado] || estado}</span>`;
 }
 
+const CAMPOS_POR_TIPO = {
+  numero_factura: ["f-numero_factura"],
+  fecha: ["f-fecha"],
+  montos: ["f-subtotal", "f-impuestos", "f-total"],
+  proveedor_id: ["f-proveedor_id"],
+};
+
+function mostrarErroresValidacion(errores) {
+  const resumen = document.getElementById("alerta-incoherencias");
+  const lista = document.getElementById("lista-incoherencias");
+
+  Object.values(CAMPOS_POR_TIPO).flat().forEach((id) => document.getElementById(id).classList.remove("is-invalid"));
+  ["numero_factura", "fecha", "proveedor_id", "montos"].forEach((campo) => {
+    const feedback = document.getElementById(`feedback-${campo}`);
+    if (feedback) feedback.textContent = "";
+  });
+
+  if (!errores || !errores.length) {
+    resumen.classList.add("d-none");
+    return;
+  }
+
+  lista.innerHTML = errores.map((e) => `<li>${e.mensaje}</li>`).join("");
+  resumen.classList.remove("d-none");
+
+  errores.forEach((e) => {
+    (CAMPOS_POR_TIPO[e.campo] || []).forEach((id) => document.getElementById(id).classList.add("is-invalid"));
+    const feedback = document.getElementById(`feedback-${e.campo}`);
+    if (feedback) feedback.textContent = e.mensaje;
+  });
+}
+
 async function cargarProveedoresSelect() {
   const { ok, data } = await apiFetch("/api/proveedores");
   if (!ok) return;
@@ -57,6 +89,7 @@ async function cargarFactura() {
   document.getElementById("factura-texto-ocr").textContent = data.texto_ocr || "(sin texto extraído todavía)";
 
   document.getElementById("btn-registrar").disabled = data.estado === "pendiente";
+  mostrarErroresValidacion(data.errores_validacion);
 
   if (procesando) {
     setTimeout(cargarFactura, 2000);
@@ -88,6 +121,7 @@ async function guardarCambios(evento) {
   mostrarAlerta("Factura actualizada correctamente");
   document.getElementById("factura-estado").innerHTML = badgeEstado(data.estado);
   document.getElementById("btn-registrar").disabled = data.estado === "pendiente";
+  mostrarErroresValidacion(data.errores_validacion);
 }
 
 async function dispararRpa() {

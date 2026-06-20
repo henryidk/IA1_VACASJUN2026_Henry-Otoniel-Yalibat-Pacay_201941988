@@ -81,20 +81,28 @@
             <p class="text-muted small">
               Revisa los campos extraídos por el OCR. Si algo se leyó mal, corrígelo aquí antes de registrar.
             </p>
+            <div id="alerta-incoherencias" class="alert alert-warning d-none">
+              <strong><i class="bi bi-exclamation-triangle me-1"></i>El análisis automático encontró lo siguiente:</strong>
+              <ul id="lista-incoherencias" class="mb-0 mt-1"></ul>
+              <div class="small mb-0 mt-2">Puedes corregir los campos marcados en rojo, o registrar igual si decides que está bien así.</div>
+            </div>
             <form id="form-factura" class="row g-3">
               <div class="col-md-6">
                 <label class="form-label">No. Factura</label>
                 <input type="text" class="form-control" id="f-numero_factura">
+                <div class="invalid-feedback" id="feedback-numero_factura"></div>
               </div>
               <div class="col-md-6">
                 <label class="form-label">Fecha</label>
                 <input type="date" class="form-control" id="f-fecha">
+                <div class="invalid-feedback" id="feedback-fecha"></div>
               </div>
               <div class="col-md-12">
                 <label class="form-label">Proveedor</label>
                 <select class="form-select" id="f-proveedor_id">
                   <option value="">Sin vincular</option>
                 </select>
+                <div class="invalid-feedback" id="feedback-proveedor_id"></div>
               </div>
               <div class="col-md-4">
                 <label class="form-label">Subtotal</label>
@@ -107,6 +115,7 @@
               <div class="col-md-4">
                 <label class="form-label">Total</label>
                 <input type="number" step="0.01" class="form-control" id="f-total">
+                <div class="invalid-feedback" id="feedback-montos"></div>
               </div>
               <div class="col-12 d-flex gap-2">
                 <button type="submit" class="btn btn-primary">

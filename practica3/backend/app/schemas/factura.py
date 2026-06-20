@@ -20,8 +20,14 @@ class FacturaOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ErrorValidacion(BaseModel):
+    campo: str
+    mensaje: str
+
+
 class FacturaDetalle(FacturaOut):
     texto_ocr: str | None
+    errores_validacion: list[ErrorValidacion] = []
 
 
 class FacturaUpdate(BaseModel):
