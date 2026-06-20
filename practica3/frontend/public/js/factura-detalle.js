@@ -9,8 +9,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await cargarFactura();
 });
 
-document.getElementById("form-factura").addEventListener("submit", guardarCambios);
-document.getElementById("btn-registrar").addEventListener("click", dispararRpa);
+document.getElementById("form-factura").addEventListener("submit", dispararRpa);
 
 function mostrarAlerta(mensaje, tipo = "success") {
   const el = document.getElementById("alerta-global");
@@ -120,20 +119,9 @@ async function guardarFactura() {
   return { ok, data };
 }
 
-async function guardarCambios(evento) {
+async function dispararRpa(evento) {
   evento.preventDefault();
 
-  const { ok, data } = await guardarFactura();
-
-  if (!ok) {
-    mostrarAlerta(Array.isArray(data?.detail) ? data.detail.map((d) => d.msg).join(", ") : (data?.detail || "No se pudo guardar"), "danger");
-    return;
-  }
-
-  mostrarAlerta("Factura actualizada correctamente");
-}
-
-async function dispararRpa() {
   const boton = document.getElementById("btn-registrar");
   boton.disabled = true;
   boton.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Guardando cambios...`;
