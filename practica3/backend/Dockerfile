@@ -26,4 +26,7 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# alembic upgrade head corre en cada arranque: es idempotente (no hace nada si ya
+# está al día) y es necesario porque el plan free de Render no tiene Shell/SSH
+# para correr migraciones manualmente.
+CMD alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}

@@ -4,9 +4,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
+from app.core.config import settings
 from app.models.factura import Factura
 
-URL_FORMULARIO_SIMULADO = "http://localhost:8000/rpa-simulado/formulario"
+URL_FORMULARIO_SIMULADO = f"http://localhost:{settings.port}/rpa-simulado/formulario"
 
 
 def _crear_driver() -> webdriver.Chrome:

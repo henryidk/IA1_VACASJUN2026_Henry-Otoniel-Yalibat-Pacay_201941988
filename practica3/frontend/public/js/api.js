@@ -1,5 +1,7 @@
-// Actualizar con la URL pública del backend al desplegar en Render (Grupo 18)
-const API_BASE_URL = "http://localhost:8000";
+// En local (Docker Compose) usa el backend local; en producción, el de Render.
+const API_BASE_URL = ["localhost", "127.0.0.1"].includes(window.location.hostname)
+  ? "http://localhost:8000"
+  : "https://smartinvoice-backend-5q8h.onrender.com";
 
 const CLAVE_TOKEN = "smartinvoice_token";
 
