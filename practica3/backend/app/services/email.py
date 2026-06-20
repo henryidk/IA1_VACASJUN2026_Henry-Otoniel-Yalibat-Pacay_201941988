@@ -23,7 +23,7 @@ def enviar_correo(
     adjunto["Content-Disposition"] = f'attachment; filename="{adjunto_nombre}"'
     mensaje.attach(adjunto)
 
-    with smtplib.SMTP(settings.smtp_host, settings.smtp_port) as servidor:
+    with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=15) as servidor:
         servidor.starttls()
         servidor.login(settings.smtp_user, settings.smtp_password)
         servidor.sendmail(settings.smtp_from, destinatario, mensaje.as_string())

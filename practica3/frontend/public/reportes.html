@@ -97,10 +97,10 @@
           </div>
         </div>
         <div class="d-flex gap-2">
-          <button class="btn btn-primary" onclick="generarReporte('pdf')">
+          <button id="btn-generar-pdf" class="btn btn-primary" onclick="generarReporte('pdf')">
             <i class="bi bi-file-earmark-pdf me-1"></i>Generar PDF
           </button>
-          <button class="btn btn-outline-primary" onclick="generarReporte('excel')">
+          <button id="btn-generar-excel" class="btn btn-outline-primary" onclick="generarReporte('excel')">
             <i class="bi bi-file-earmark-excel me-1"></i>Generar Excel
           </button>
         </div>
@@ -118,7 +118,7 @@
             <input type="email" id="r-destinatario" class="form-control" placeholder="correo@ejemplo.com">
           </div>
           <div class="col-md-4">
-            <button class="btn btn-success w-100" onclick="enviarReporte()">
+            <button id="btn-enviar-correo" class="btn btn-success w-100" onclick="enviarReporte()">
               <i class="bi bi-send me-1"></i>Enviar por correo
             </button>
           </div>

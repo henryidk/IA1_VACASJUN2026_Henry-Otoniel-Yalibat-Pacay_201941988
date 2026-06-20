@@ -36,45 +36,73 @@ function construirQueryReporte() {
 }
 
 async function generarReporte(formato) {
-  const query = construirQueryReporte();
-  const ruta = `/api/reportes/${formato}${query ? "?" + query : ""}`;
+  const boton = document.getElementById(formato === "pdf" ? "btn-generar-pdf" : "btn-generar-excel");
+  const textoOriginal = boton.innerHTML;
+  boton.disabled = true;
+  boton.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Generando...`;
 
-  const respuesta = await fetch(`${API_BASE_URL}${ruta}`, {
-    headers: { Authorization: `Bearer ${obtenerToken()}` },
-  });
+  try {
+    const query = construirQueryReporte();
+    const ruta = `/api/reportes/${formato}${query ? "?" + query : ""}`;
 
-  if (!respuesta.ok) {
-    mostrarAlerta("No se pudo generar el reporte", "danger");
-    return;
+    const respuesta = await fetch(`${API_BASE_URL}${ruta}`, {
+      headers: { Authorization: `Bearer ${obtenerToken()}` },
+    });
+
+    if (!respuesta.ok) {
+      mostrarAlerta("No se pudo generar el reporte", "danger");
+      return;
+    }
+
+    const blob = await respuesta.blob();
+    const url = URL.createObjectURL(blob);
+    const enlace = document.createElement("a");
+    enlace.href = url;
+    enlace.download = formato === "pdf" ? "reporte_facturas.pdf" : "reporte_facturas.xlsx";
+    document.body.appendChild(enlace);
+    enlace.click();
+    enlace.remove();
+    URL.revokeObjectURL(url);
+
+    _ultimoReporteId = respuesta.headers.get("X-Reporte-Id");
+    document.getElementById("card-enviar").style.display = _ultimoReporteId ? "block" : "none";
+    mostrarAlerta(`Reporte ${formato.toUpperCase()} descargado correctamente`);
+  } catch (err) {
+    mostrarAlerta(`No se pudo conectar con el servidor: ${err.message}`, "danger");
+  } finally {
+    boton.disabled = false;
+    boton.innerHTML = textoOriginal;
   }
-
-  const blob = await respuesta.blob();
-  const url = URL.createObjectURL(blob);
-  const enlace = document.createElement("a");
-  enlace.href = url;
-  enlace.download = formato === "pdf" ? "reporte_facturas.pdf" : "reporte_facturas.xlsx";
-  document.body.appendChild(enlace);
-  enlace.click();
-  enlace.remove();
-  URL.revokeObjectURL(url);
-
-  _ultimoReporteId = respuesta.headers.get("X-Reporte-Id");
-  document.getElementById("card-enviar").style.display = _ultimoReporteId ? "block" : "none";
-  mostrarAlerta(`Reporte ${formato.toUpperCase()} descargado correctamente`);
 }
 
 async function enviarReporte() {
-  if (!_ultimoReporteId) return;
-  const destinatario = document.getElementById("r-destinatario").value || null;
-
-  const { ok, data } = await apiFetch(`/api/reportes/${_ultimoReporteId}/enviar`, {
-    method: "POST",
-    body: JSON.stringify({ destinatario }),
-  });
-
-  if (!ok) {
-    mostrarAlerta(data?.detail || "No se pudo enviar el correo", "danger");
+  if (!_ultimoReporteId) {
+    mostrarAlerta("Primero genera un reporte (PDF o Excel) antes de enviarlo", "danger");
     return;
   }
-  mostrarAlerta(data.detail || "Reporte enviado correctamente");
+
+  const boton = document.getElementById("btn-enviar-correo");
+  const textoOriginal = boton.innerHTML;
+  boton.disabled = true;
+  boton.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Enviando...`;
+
+  try {
+    const destinatario = document.getElementById("r-destinatario").value || null;
+
+    const { ok, data } = await apiFetch(`/api/reportes/${_ultimoReporteId}/enviar`, {
+      method: "POST",
+      body: JSON.stringify({ destinatario }),
+    });
+
+    if (!ok) {
+      mostrarAlerta(data?.detail || "No se pudo enviar el correo", "danger");
+      return;
+    }
+    mostrarAlerta(data.detail || "Reporte enviado correctamente");
+  } catch (err) {
+    mostrarAlerta(`No se pudo conectar con el servidor: ${err.message}`, "danger");
+  } finally {
+    boton.disabled = false;
+    boton.innerHTML = textoOriginal;
+  }
 }
