@@ -123,12 +123,6 @@ def disparar_rpa(
     if factura is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Factura no encontrada")
 
-    if factura.estado != EstadoFactura.PROCESADO:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Solo se puede registrar con RPA una factura en estado 'procesado'",
-        )
-
     try:
         resultado = registrar_factura_en_formulario(factura)
     except Exception as exc:

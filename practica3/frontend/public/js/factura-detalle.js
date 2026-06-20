@@ -56,7 +56,7 @@ async function cargarFactura() {
   document.getElementById("f-total").value = data.total ?? "";
   document.getElementById("factura-texto-ocr").textContent = data.texto_ocr || "(sin texto extraído todavía)";
 
-  document.getElementById("btn-registrar").disabled = data.estado !== "procesado";
+  document.getElementById("btn-registrar").disabled = data.estado === "pendiente";
 
   if (procesando) {
     setTimeout(cargarFactura, 2000);
@@ -87,7 +87,7 @@ async function guardarCambios(evento) {
 
   mostrarAlerta("Factura actualizada correctamente");
   document.getElementById("factura-estado").innerHTML = badgeEstado(data.estado);
-  document.getElementById("btn-registrar").disabled = data.estado !== "procesado";
+  document.getElementById("btn-registrar").disabled = data.estado === "pendiente";
 }
 
 async function dispararRpa() {
