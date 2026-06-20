@@ -96,9 +96,7 @@ async function cargarFactura() {
   }
 }
 
-async function guardarCambios(evento) {
-  evento.preventDefault();
-
+async function guardarFactura() {
   const datos = {
     numero_factura: document.getElementById("f-numero_factura").value || null,
     fecha: document.getElementById("f-fecha").value || null,
@@ -113,22 +111,42 @@ async function guardarCambios(evento) {
     body: JSON.stringify(datos),
   });
 
+  if (ok) {
+    document.getElementById("factura-estado").innerHTML = badgeEstado(data.estado);
+    document.getElementById("btn-registrar").disabled = data.estado === "pendiente";
+    mostrarErroresValidacion(data.errores_validacion);
+  }
+
+  return { ok, data };
+}
+
+async function guardarCambios(evento) {
+  evento.preventDefault();
+
+  const { ok, data } = await guardarFactura();
+
   if (!ok) {
     mostrarAlerta(Array.isArray(data?.detail) ? data.detail.map((d) => d.msg).join(", ") : (data?.detail || "No se pudo guardar"), "danger");
     return;
   }
 
   mostrarAlerta("Factura actualizada correctamente");
-  document.getElementById("factura-estado").innerHTML = badgeEstado(data.estado);
-  document.getElementById("btn-registrar").disabled = data.estado === "pendiente";
-  mostrarErroresValidacion(data.errores_validacion);
 }
 
 async function dispararRpa() {
   const boton = document.getElementById("btn-registrar");
   boton.disabled = true;
-  boton.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Registrando...`;
+  boton.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Guardando cambios...`;
 
+  const guardado = await guardarFactura();
+  if (!guardado.ok) {
+    boton.innerHTML = `<i class="bi bi-robot me-1"></i>Registrar`;
+    boton.disabled = false;
+    mostrarAlerta(guardado.data?.detail || "No se pudo guardar la factura antes de registrar", "danger");
+    return;
+  }
+
+  boton.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Registrando...`;
   const { ok, data } = await apiFetch(`/api/facturas/${_idFactura}/rpa`, { method: "POST" });
 
   boton.innerHTML = `<i class="bi bi-robot me-1"></i>Registrar`;
