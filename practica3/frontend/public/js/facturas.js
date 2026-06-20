@@ -58,10 +58,7 @@ async function subirFactura(evento) {
     return;
   }
 
-  mostrarAlerta("Factura cargada, procesando con OCR en segundo plano...");
-  document.getElementById("form-carga").reset();
-  document.getElementById("vista-previa").classList.add("d-none");
-  cargarFacturas();
+  window.location.href = `factura.html?id=${data.id}`;
 }
 
 function badgeEstado(estado) {

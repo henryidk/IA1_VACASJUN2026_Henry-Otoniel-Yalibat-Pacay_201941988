@@ -1,12 +1,24 @@
 from decimal import Decimal
 
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.models.factura import EstadoFactura, Factura
-from app.schemas.proveedor import NIT_PATTERN
-from app.services.proveedor import obtener_por_nit
+from app.models.proveedor import Proveedor
+from app.schemas.proveedor import NIT_PATTERN, ProveedorCreate
+from app.services.proveedor import crear_proveedor, obtener_por_nit
 
 TOLERANCIA_MONTOS = Decimal("0.05")
+
+
+def _crear_proveedor_automatico(db: Session, nit: str, nombre: str | None) -> Proveedor | None:
+    if not nombre:
+        return None
+    try:
+        datos = ProveedorCreate(nombre=nombre, nit=nit)
+    except ValidationError:
+        return None
+    return crear_proveedor(db, datos)
 
 
 def _validar_campos_basicos(factura: Factura) -> list[str]:
@@ -37,18 +49,21 @@ def validar_factura(
     """Validación tras el OCR: además de los campos básicos, intenta vincular el
     proveedor a partir del NIT extraído del texto (todavía no hay proveedor_id)."""
     errores = _validar_campos_basicos(factura)
+    nit_valido = nit_extraido is not None and NIT_PATTERN.match(nit_extraido)
 
-    if nit_extraido is None or not NIT_PATTERN.match(nit_extraido):
+    if not nit_valido:
         errores.append("El NIT extraído no tiene un formato válido")
 
-    if nit_extraido:
+    if nit_valido:
         proveedor = obtener_por_nit(db, nit_extraido)
+        if proveedor is None:
+            proveedor = _crear_proveedor_automatico(db, nit_extraido, proveedor_nombre_extraido)
         if proveedor is not None:
             factura.proveedor_id = proveedor.id
         else:
             errores.append(
-                f"No existe un proveedor registrado con NIT {nit_extraido}"
-                + (f" ({proveedor_nombre_extraido})" if proveedor_nombre_extraido else "")
+                f"No existe un proveedor registrado con NIT {nit_extraido} y no se pudo crear "
+                "automáticamente (el OCR no logró leer un nombre de proveedor válido)"
             )
 
     factura.estado = EstadoFactura.RECHAZADO if errores else EstadoFactura.PROCESADO

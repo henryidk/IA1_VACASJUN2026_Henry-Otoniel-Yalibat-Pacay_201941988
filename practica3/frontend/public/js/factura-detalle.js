@@ -43,6 +43,9 @@ async function cargarFactura() {
     return;
   }
 
+  const procesando = data.estado === "pendiente";
+  document.getElementById("alerta-procesando").classList.toggle("d-none", !procesando);
+
   document.getElementById("factura-nombre-archivo").textContent = data.nombre_archivo;
   document.getElementById("factura-estado").innerHTML = badgeEstado(data.estado);
   document.getElementById("f-numero_factura").value = data.numero_factura ?? "";
@@ -54,6 +57,10 @@ async function cargarFactura() {
   document.getElementById("factura-texto-ocr").textContent = data.texto_ocr || "(sin texto extraído todavía)";
 
   document.getElementById("btn-registrar").disabled = data.estado !== "procesado";
+
+  if (procesando) {
+    setTimeout(cargarFactura, 2000);
+  }
 }
 
 async function guardarCambios(evento) {

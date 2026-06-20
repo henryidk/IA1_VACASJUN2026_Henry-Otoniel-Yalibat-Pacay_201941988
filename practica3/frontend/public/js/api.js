@@ -1,7 +1,9 @@
 // En local (Docker Compose) usa el backend local; en producción, el de Render.
-const API_BASE_URL = ["localhost", "127.0.0.1"].includes(window.location.hostname)
-  ? "http://localhost:8000"
-  : "https://smartinvoice-backend-5q8h.onrender.com";
+// Se puede forzar otra URL (debug) con: localStorage.setItem("api_base_url_override", "...")
+const API_BASE_URL = localStorage.getItem("api_base_url_override")
+  || (["localhost", "127.0.0.1"].includes(window.location.hostname)
+    ? "http://localhost:8000"
+    : "https://smartinvoice-backend-5q8h.onrender.com");
 
 const CLAVE_TOKEN = "smartinvoice_token";
 
