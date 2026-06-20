@@ -23,6 +23,22 @@ function badgeEstado(estado) {
   return `<span class="badge badge-${estado}">${etiquetas[estado] || estado}</span>`;
 }
 
+const TEXTO_POR_ESTADO = {
+  procesado: "Los campos extraídos pasaron la validación automática. Puedes registrar con RPA, o corregir algo si lo deseas.",
+  rechazado:
+    "El análisis automático encontró algo que normalmente conviene revisar (ver abajo). Esto NO bloquea el registro: " +
+    "puedes corregir los campos marcados, o registrar la factura tal como está si decides que está bien así.",
+  error:
+    "Ocurrió un error procesando este documento (revisa el texto OCR a la derecha). Puedes completar los campos " +
+    "manualmente y registrar igual.",
+};
+
+function actualizarTextoExplicativo(estado) {
+  const el = document.getElementById("texto-explicativo-estado");
+  el.textContent =
+    TEXTO_POR_ESTADO[estado] || "Revisa los campos extraídos por el OCR. Si algo se leyó mal, corrígelo aquí antes de registrar.";
+}
+
 const CAMPOS_POR_TIPO = {
   numero_factura: ["f-numero_factura"],
   fecha: ["f-fecha"],
@@ -79,6 +95,7 @@ async function cargarFactura() {
 
   document.getElementById("factura-nombre-archivo").textContent = data.nombre_archivo;
   document.getElementById("factura-estado").innerHTML = badgeEstado(data.estado);
+  actualizarTextoExplicativo(data.estado);
   document.getElementById("f-numero_factura").value = data.numero_factura ?? "";
   document.getElementById("f-fecha").value = data.fecha ?? "";
   document.getElementById("f-proveedor_id").value = data.proveedor_id ?? "";
@@ -112,6 +129,7 @@ async function guardarFactura() {
 
   if (ok) {
     document.getElementById("factura-estado").innerHTML = badgeEstado(data.estado);
+    actualizarTextoExplicativo(data.estado);
     document.getElementById("btn-registrar").disabled = data.estado === "pendiente";
     mostrarErroresValidacion(data.errores_validacion);
   }

@@ -24,9 +24,19 @@ def _crear_driver() -> webdriver.Chrome:
     return webdriver.Chrome(options=opciones)
 
 
-def registrar_factura_en_formulario(factura: Factura) -> str:
+def registrar_factura_en_formulario(factura: Factura) -> dict:
     proveedor_nombre = factura.proveedor.nombre if factura.proveedor else ""
     proveedor_nit = factura.proveedor.nit if factura.proveedor else ""
+
+    campos_enviados = {
+        "numero_factura": factura.numero_factura or "(vacío)",
+        "fecha": factura.fecha.isoformat() if factura.fecha else "(vacío)",
+        "proveedor": proveedor_nombre or "(vacío)",
+        "nit": proveedor_nit or "(vacío)",
+        "subtotal": str(factura.subtotal) if factura.subtotal is not None else "(vacío)",
+        "impuestos": str(factura.impuestos) if factura.impuestos is not None else "(vacío)",
+        "total": str(factura.total) if factura.total is not None else "(vacío)",
+    }
 
     driver = _crear_driver()
     try:
@@ -44,9 +54,9 @@ def registrar_factura_en_formulario(factura: Factura) -> str:
         WebDriverWait(driver, 10).until(
             EC.text_to_be_present_in_element((By.ID, "resultado"), "")
         )
-        resultado = driver.find_element(By.ID, "resultado").text
-        if resultado.startswith("Error"):
-            raise RuntimeError(resultado)
-        return resultado
+        confirmacion = driver.find_element(By.ID, "resultado").text
+        if confirmacion.startswith("Error"):
+            raise RuntimeError(confirmacion)
+        return {"confirmacion": confirmacion, "campos_enviados": campos_enviados}
     finally:
         driver.quit()

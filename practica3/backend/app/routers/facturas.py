@@ -148,6 +148,14 @@ def disparar_rpa(
         )
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="No se pudo completar el registro automático (RPA)") from exc
 
+    campos = resultado["campos_enviados"]
+    detalle_campos = (
+        f"No. Factura: {campos['numero_factura']}, Fecha: {campos['fecha']}, "
+        f"Proveedor: {campos['proveedor']} (NIT: {campos['nit']}), "
+        f"Subtotal: {campos['subtotal']}, Impuestos: {campos['impuestos']}, Total: {campos['total']}"
+    )
+    resultado_completo = f"{resultado['confirmacion']} | Datos enviados al formulario -> {detalle_campos}"
+
     registrar_evento(
         db,
         factura_id=factura.id,
@@ -155,6 +163,6 @@ def disparar_rpa(
         tipo_evento=TipoEvento.RPA,
         estado="exitoso",
         documento=factura.nombre_archivo,
-        resultado=resultado,
+        resultado=resultado_completo,
     )
-    return {"detail": resultado}
+    return {"detail": resultado_completo}

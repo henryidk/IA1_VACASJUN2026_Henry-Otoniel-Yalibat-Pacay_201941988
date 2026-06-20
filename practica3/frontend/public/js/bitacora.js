@@ -36,7 +36,7 @@ async function cargarBitacora() {
     <tr>
       <td>${new Date(e.fecha_hora).toLocaleString("es-GT")}</td>
       <td>${e.tipo_evento}</td>
-      <td>${e.documento ?? "-"}</td>
+      <td>${e.factura_id ? `<a href="factura.html?id=${e.factura_id}">${e.documento ?? "-"}</a>` : (e.documento ?? "-")}</td>
       <td>${e.usuario_id ?? "-"}</td>
       <td>${badgeEstado(e.estado)}</td>
       <td class="small">${e.resultado ?? "-"}</td>
@@ -74,9 +74,10 @@ async function cargarMonitoreoRpa() {
 
   cuerpo.innerHTML = facturas.map((f) => {
     const evento = ultimaPorFactura[f.id];
+    const numeroExtra = f.numero_factura ? ` (No. extraído: ${f.numero_factura})` : "";
     return `
       <tr>
-        <td>${f.numero_factura ?? f.nombre_archivo}</td>
+        <td><a href="factura.html?id=${f.id}">${f.nombre_archivo}</a>${numeroExtra}</td>
         <td>${badgeEstado(f.estado)}</td>
         <td>${evento ? new Date(evento.fecha_hora).toLocaleString("es-GT") : "Sin ejecutar"}</td>
         <td class="small">${evento ? `${badgeEstado(evento.estado)} ${evento.resultado ?? ""}` : "-"}</td>
