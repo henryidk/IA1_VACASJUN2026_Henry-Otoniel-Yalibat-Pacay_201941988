@@ -65,13 +65,14 @@ export class MazeRenderer {
     _loadColors() {
         const style = getComputedStyle(document.documentElement);
         return {
-            wall: style.getPropertyValue('--maze-wall').trim() || '#334155',
-            path: style.getPropertyValue('--maze-path').trim() || '#e2e8f0',
-            start: style.getPropertyValue('--maze-start').trim() || '#10b981',
-            goal: style.getPropertyValue('--maze-goal').trim() || '#ef4444',
-            route: style.getPropertyValue('--maze-route').trim() || '#f59e0b',
-            explored: style.getPropertyValue('--maze-explored').trim() || 'rgba(59, 130, 246, 0.3)',
-            bg: style.getPropertyValue('--bg-surface').trim() || '#1e293b'
+            wall: style.getPropertyValue('--maze-wall').trim() || '#778873',
+            path: style.getPropertyValue('--maze-path').trim() || '#FDF6ED',
+            start: style.getPropertyValue('--maze-start').trim() || '#A1BC98',
+            goal: style.getPropertyValue('--maze-goal').trim() || '#DCCFC0',
+            route: style.getPropertyValue('--maze-route').trim() || '#778873',
+            explored: style.getPropertyValue('--maze-explored').trim() || '#A1BC98',
+            dark: style.getPropertyValue('--color-dark').trim() || '#778873',
+            cream: style.getPropertyValue('--color-cream').trim() || '#FDF6ED'
         };
     }
 
@@ -147,46 +148,74 @@ export class MazeRenderer {
         // 5. Dibujar Inicio y Meta
         if (this.start) {
             this._drawCell(this.start.row, this.start.col, this.colors.start);
-            // Pequeño ícono/letra
-            this._drawText(this.start.row, this.start.col, "S", "white");
+            // Glifo oscuro para inicio
+            this._drawText(this.start.row, this.start.col, "S", this.colors.dark);
         }
         
         if (this.goal) {
             this._drawCell(this.goal.row, this.goal.col, this.colors.goal);
-            this._drawText(this.goal.row, this.goal.col, "G", "white");
+            // Glifo oscuro para meta
+            this._drawText(this.goal.row, this.goal.col, "G", this.colors.dark);
         }
     }
 
     _drawCell(row, col, color) {
         this.ctx.fillStyle = color;
-        // Se deja un pequeñísimo margen (0.5) para que no se vea una masa sólida si el cliente lo desea,
-        // pero para laberintos perfectos es mejor dibujar el cuadrado completo sin margen
-        // para que los pasillos se conecten fluidamente.
         this.ctx.fillRect(
             col * this.cellSize, 
             row * this.cellSize, 
             this.cellSize, 
             this.cellSize
         );
+        
+        // Si es muro, añadir un borde sutil para darle textura de bloque
+        if (color === this.colors.wall) {
+            this.ctx.strokeStyle = "rgba(0,0,0,0.15)";
+            this.ctx.lineWidth = 2;
+            this.ctx.strokeRect(
+                col * this.cellSize + 1, 
+                row * this.cellSize + 1, 
+                this.cellSize - 2, 
+                this.cellSize - 2
+            );
+        } else if (color === this.colors.path) {
+            // Celda vacía, dibujar un borde sutil (la cuadrícula)
+            this.ctx.strokeStyle = "rgba(119, 136, 115, 0.1)"; // var(--color-dark) muy transparente
+            this.ctx.lineWidth = 1;
+            this.ctx.strokeRect(
+                col * this.cellSize, 
+                row * this.cellSize, 
+                this.cellSize, 
+                this.cellSize
+            );
+        }
     }
     
     _drawCircle(row, col, color, scale = 0.5) {
+        const cx = (col * this.cellSize) + (this.cellSize / 2);
+        const cy = (row * this.cellSize) + (this.cellSize / 2);
+        const radius = (this.cellSize * scale) / 2;
+
+        // Dibujar el fondo de la ruta
         this.ctx.fillStyle = color;
         this.ctx.beginPath();
-        const radius = (this.cellSize * scale) / 2;
-        const x = (col * this.cellSize) + (this.cellSize / 2);
-        const y = (row * this.cellSize) + (this.cellSize / 2);
-        this.ctx.arc(x, y, radius, 0, Math.PI * 2);
+        this.ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Patrón punteado sobre la ruta como indicó el plan
+        this.ctx.fillStyle = this.colors.cream;
+        this.ctx.beginPath();
+        this.ctx.arc(cx, cy, radius * 0.4, 0, Math.PI * 2);
         this.ctx.fill();
     }
     
     _drawText(row, col, text, color) {
         this.ctx.fillStyle = color;
-        this.ctx.font = `bold ${Math.floor(this.cellSize * 0.6)}px Inter, sans-serif`;
+        this.ctx.font = `bold ${Math.floor(this.cellSize * 0.6)}px Fredoka, sans-serif`;
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
         const x = (col * this.cellSize) + (this.cellSize / 2);
-        const y = (row * this.cellSize) + (this.cellSize / 2);
+        const y = (row * this.cellSize) + (this.cellSize / 2) + 2; // pequeño ajuste visual para Fredoka
         this.ctx.fillText(text, x, y);
     }
 
