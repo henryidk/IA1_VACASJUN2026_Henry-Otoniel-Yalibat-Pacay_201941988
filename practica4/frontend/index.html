@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoboMaze - Inteligencia Artificial 1</title>
+    <meta name="description" content="Visualizador de algoritmos de búsqueda BFS y DFS en laberintos aleatorios.">
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="glass-panel">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon"></div>
+                    <h1>RoboMaze</h1>
+                </div>
+                <div class="badges">
+                    <span class="badge">BFS</span>
+                    <span class="badge">DFS</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-layout">
+            <!-- Sidebar: Controles -->
+            <aside class="sidebar glass-panel">
+                
+                <!-- Sección 1: Generación -->
+                <section class="control-group">
+                    <h2>Generador de Laberintos</h2>
+                    <p class="section-desc">Tamaño (celdas transitables)</p>
+                    
+                    <div class="input-row">
+                        <div class="input-field">
+                            <label for="input-cols">Ancho:</label>
+                            <input type="number" id="input-cols" min="5" max="30" value="15">
+                        </div>
+                        <div class="input-field">
+                            <label for="input-rows">Alto:</label>
+                            <input type="number" id="input-rows" min="5" max="30" value="15">
+                        </div>
+                    </div>
+                    
+                    <button id="btn-generate" class="btn btn-primary">
+                        Generar Nuevo Laberinto
+                    </button>
+                </section>
+
+                <hr class="divider">
+
+                <!-- Sección 2: Búsqueda -->
+                <section class="control-group">
+                    <h2>Algoritmos de Búsqueda</h2>
+                    
+                    <div class="search-actions">
+                        <button id="btn-search-bfs" class="btn btn-secondary" disabled>
+                            Ejecutar BFS
+                        </button>
+                        <button id="btn-search-dfs" class="btn btn-secondary" disabled>
+                            Ejecutar DFS
+                        </button>
+                    </div>
+                    
+                    <button id="btn-compare" class="btn btn-accent" disabled>
+                        Comparar BFS vs DFS
+                    </button>
+                </section>
+
+                <!-- Sección 3: Resultados -->
+                <section class="results-group" id="results-container">
+                    <!-- Los resultados se inyectan dinámicamente aquí -->
+                    <div class="empty-state">Genera un laberinto y ejecuta una búsqueda para ver los resultados.</div>
+                </section>
+                
+            </aside>
+
+            <!-- Centro: Visualización del Laberinto -->
+            <section class="maze-container glass-panel">
+                <div class="canvas-wrapper" id="canvas-wrapper">
+                    <canvas id="maze-canvas"></canvas>
+                </div>
+                <div class="legend">
+                    <div class="legend-item"><span class="legend-color start"></span> Inicio</div>
+                    <div class="legend-item"><span class="legend-color goal"></span> Meta</div>
+                    <div class="legend-item"><span class="legend-color wall"></span> Muro</div>
+                    <div class="legend-item"><span class="legend-color path"></span> Ruta</div>
+                    <div class="legend-item"><span class="legend-color explored"></span> Explorados</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Scripts (se añadirán en los siguientes commits) -->
+</body>
+</html>
