@@ -210,7 +210,150 @@ window.addEventListener('mouseup', () => {
     state.isDragging = false;
 });
 
-// (Los listeners de búsqueda se implementarán en el Grupo 10)
+// --- Ejecución y Animación de Búsqueda ---
+
+/**
+ * Anima la exploración y la ruta resultante
+ */
+function animateSearch(result, onComplete) {
+    const { explorados, ruta } = result;
+    
+    // Si no hay nodos explorados o ruta (ej. sin camino y 1 nodo), dibujamos directo
+    if (!explorados || explorados.length === 0) {
+        renderer.setSearchResult(explorados, ruta);
+        if (onComplete) onComplete();
+        return;
+    }
+
+    // Calcular cuántos nodos dibujar por frame para que la animación dure ~1 segundo
+    const framesTarget = 60; 
+    const nodesPerFrame = Math.max(1, Math.floor(explorados.length / framesTarget));
+    
+    let currentIndex = 0;
+
+    function frame() {
+        currentIndex += nodesPerFrame;
+        
+        if (currentIndex < explorados.length) {
+            // Dibujar progreso parcial
+            renderer.setSearchResult(explorados.slice(0, currentIndex), []);
+            requestAnimationFrame(frame);
+        } else {
+            // Finalizar animación dibujando la ruta definitiva
+            renderer.setSearchResult(explorados, ruta);
+            if (onComplete) onComplete();
+        }
+    }
+
+    requestAnimationFrame(frame);
+}
+
+/**
+ * Renderiza el HTML de un resultado individual
+ */
+function buildResultHTML(result) {
+    const badgeClass = result.encontrado ? '' : ' error';
+    const statusText = result.encontrado ? 'Éxito' : 'Sin Ruta';
+    
+    return `
+        <div class="result-card">
+            <div class="result-title">
+                ${result.algoritmo}
+                <span class="result-badge${badgeClass}">${statusText}</span>
+            </div>
+            <div class="result-metric">
+                <span>Ruta:</span>
+                <span class="result-value">${result.ruta ? result.ruta.length + ' celdas' : 'N/A'}</span>
+            </div>
+            <div class="result-metric">
+                <span>Nodos explorados:</span>
+                <span class="result-value">${result.nodos_explorados}</span>
+            </div>
+            <div class="result-metric">
+                <span>Tiempo:</span>
+                <span class="result-value">${result.tiempo_ms} ms</span>
+            </div>
+            <div class="result-message">${result.mensaje}</div>
+        </div>
+    `;
+}
+
+/**
+ * Handler general para ejecutar una búsqueda
+ */
+async function handleSearch(algoritmo) {
+    if (!state.maze) return;
+
+    state.isGenerating = true; // Reusamos flag para bloquear botones
+    const btn = algoritmo === 'BFS' ? refs.btnSearchBfs : refs.btnSearchDfs;
+    btn.classList.add('loading');
+    renderer.clearSearch();
+    showStatusMessage(`<div class="empty-state">Ejecutando ${algoritmo}...</div>`);
+    updateUIState();
+
+    try {
+        const { grid, start, goal } = state.maze;
+        const result = await ApiClient.search(grid, start, goal, algoritmo);
+        
+        showStatusMessage('<div class="empty-state">Animando exploración...</div>');
+        
+        // Esperar a que termine la animación para mostrar los resultados finales
+        animateSearch(result, () => {
+            showStatusMessage(buildResultHTML(result), !result.encontrado);
+        });
+        
+    } catch (error) {
+        showStatusMessage(`<div class="empty-state" style="color: #f87171;">Error: ${error.message}</div>`, true);
+    } finally {
+        state.isGenerating = false;
+        btn.classList.remove('loading');
+        updateUIState();
+    }
+}
+
+/**
+ * Handler para la comparación
+ */
+async function handleCompare() {
+    if (!state.maze) return;
+
+    state.isGenerating = true;
+    refs.btnCompare.classList.add('loading');
+    renderer.clearSearch();
+    showStatusMessage('<div class="empty-state">Ejecutando comparación...</div>');
+    updateUIState();
+
+    try {
+        const { grid, start, goal } = state.maze;
+        const result = await ApiClient.compare(grid, start, goal);
+        
+        // En comparación no animamos para que sea instantáneo y ver los números lado a lado
+        // Pintamos el resultado de BFS por defecto (suele ser la mejor ruta)
+        renderer.setSearchResult(result.bfs.explorados, result.bfs.ruta);
+        
+        const html = `
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                ${buildResultHTML(result.bfs)}
+                ${buildResultHTML(result.dfs)}
+            </div>
+        `;
+        // Si ninguno encontró ruta, marcamos error
+        const isError = !result.bfs.encontrado && !result.dfs.encontrado;
+        showStatusMessage(html, isError);
+        
+    } catch (error) {
+        showStatusMessage(`<div class="empty-state" style="color: #f87171;">Error: ${error.message}</div>`, true);
+    } finally {
+        state.isGenerating = false;
+        refs.btnCompare.classList.remove('loading');
+        updateUIState();
+    }
+}
+
+// Asignar listeners de búsqueda
+refs.btnSearchBfs.addEventListener('click', () => handleSearch('BFS'));
+refs.btnSearchDfs.addEventListener('click', () => handleSearch('DFS'));
+refs.btnCompare.addEventListener('click', handleCompare);
 
 // Inicializar UI
 updateUIState();
