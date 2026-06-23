@@ -63,6 +63,24 @@ class MazeRandomRequest(BaseModel):
     )
 
 
+class MazeSummary(BaseModel):
+    """Metadatos resumidos de un laberinto predefinido, para listados."""
+
+    id:         str
+    nombre:     str
+    dificultad: str
+    rows:       int
+    cols:       int
+
+
+class PredefinedMazeResponse(MazeSummary):
+    """Laberinto predefinido completo, listo para cargar en el frontend."""
+
+    grid:  list[list[int]]
+    start: PositionSchema
+    goal:  PositionSchema
+
+
 class MazeResponse(BaseModel):
     """
     Representación completa de un laberinto lista para enviar al cliente.

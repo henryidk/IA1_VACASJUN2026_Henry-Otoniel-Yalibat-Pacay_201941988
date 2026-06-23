@@ -191,6 +191,33 @@ export class MazeRenderer {
         }
     }
     
+    _drawGoal(row, col) {
+        const x = col * this.cellSize;
+        const y = row * this.cellSize;
+        const s = this.cellSize;
+        const ctx = this.ctx;
+
+        // Fondo beige
+        ctx.fillStyle = this.colors.goal;
+        ctx.fillRect(x, y, s, s);
+
+        const fontSize = Math.max(8, Math.floor(s * 0.68));
+        const cx = x + s / 2;
+        const cy = y + s / 2 + Math.floor(fontSize * 0.06);
+
+        ctx.font = `bold ${fontSize}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // Sombra/borde
+        ctx.fillStyle = 'rgba(0,0,0,0.25)';
+        ctx.fillText('♥', cx + 1, cy + 1);
+
+        // Corazón oscuro
+        ctx.fillStyle = this.colors.dark;
+        ctx.fillText('♥', cx, cy);
+    }
+
     _drawCircle(row, col, color, scale = 0.5) {
         const cx = (col * this.cellSize) + (this.cellSize / 2);
         const cy = (row * this.cellSize) + (this.cellSize / 2);

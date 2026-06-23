@@ -7,6 +7,47 @@ const API_BASE_URL = '/api';
 
 export const ApiClient = {
     /**
+     * Lista los laberintos predefinidos disponibles (metadatos, sin grid).
+     * @returns {Promise<Array<Object>>} Lista de { id, nombre, dificultad, rows, cols }.
+     */
+    async listMazes() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/mazes`);
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Error al listar laberintos predefinidos');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('API Error - listMazes:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Obtiene un laberinto predefinido completo por su id.
+     * @param {string} id Id del laberinto predefinido.
+     * @returns {Promise<Object>} Datos del laberinto (grid, start, goal).
+     */
+    async getMaze(id) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/mazes/${id}`);
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Error al obtener el laberinto');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('API Error - getMaze:', error);
+            throw error;
+        }
+    },
+
+    /**
      * Genera un laberinto aleatorio.
      * @param {number} cols Número de columnas lógicas.
      * @param {number} rows Número de filas lógicas.

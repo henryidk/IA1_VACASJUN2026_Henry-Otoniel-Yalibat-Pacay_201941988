@@ -176,13 +176,17 @@ function applyEdit(row, col, isDrag = false) {
             changed = true;
         }
     } else if (activeTool === 'start' && !isDrag) {
+        maze.grid[row][col] = 0;
         maze.start = { row, col };
-        maze.grid[row][col] = 0; // Asegurar que sea transitable
-        changed = true;
+        renderer.setStart(row, col); // El renderer actualiza su estado y redibuja
+        showStatusMessage('<div class="empty-state">Inicio movido. Ejecuta una búsqueda.</div>');
+        return; // setStart ya llama a draw(), no necesitamos continuar
     } else if (activeTool === 'goal' && !isDrag) {
+        maze.grid[row][col] = 0;
         maze.goal = { row, col };
-        maze.grid[row][col] = 0; // Asegurar que sea transitable
-        changed = true;
+        renderer.setGoal(row, col); // El renderer actualiza su estado y redibuja
+        showStatusMessage('<div class="empty-state">Meta movida. Ejecuta una búsqueda.</div>');
+        return; // setGoal ya llama a draw(), no necesitamos continuar
     }
 
     if (changed) {

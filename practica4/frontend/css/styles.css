@@ -223,6 +223,27 @@ input[type="number"]:focus {
     box-shadow: 0 0 0 3px rgba(161, 188, 152, 0.4);
 }
 
+.select-maze {
+    width: 100%;
+    background: var(--color-cream);
+    border: 2px solid var(--color-dark);
+    color: var(--color-dark);
+    padding: 0.625rem;
+    border-radius: var(--radius-sm);
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 500;
+    outline: none;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+}
+
+.select-maze:focus {
+    border-color: var(--color-light);
+    box-shadow: 0 0 0 3px rgba(161, 188, 152, 0.4);
+}
+
 /* Botones: Estilo Juego de Mesa */
 .btn {
     width: 100%;
@@ -316,11 +337,18 @@ input[type="number"]:focus {
     background: white;
 }
 
+/* Estado activo: presionado, oscuro — estilo arcade "botón hundido" */
 .tool-btn.active {
-    background: var(--color-light);
+    background: var(--color-dark);
+    color: var(--color-cream);
     transform: translateY(2px);
     box-shadow: 0 0 0 var(--color-dark);
     font-weight: 600;
+    border-color: var(--color-dark);
+}
+
+.tool-btn.active .legend-color {
+    border-color: var(--color-cream);
 }
 
 /* Resultados */
@@ -367,10 +395,31 @@ input[type="number"]:focus {
     border: 3px solid var(--color-dark);
     overflow: hidden;
     position: relative;
-    /* Patrón sutil para el fondo del canvas por si el laberinto es pequeño */
     background-image: radial-gradient(rgba(119, 136, 115, 0.15) 2px, transparent 2px);
     background-size: 20px 20px;
 }
+
+/* Badge de herramienta activa — aparece en la esquina superior-izquierda del canvas */
+.canvas-wrapper[data-tool]::before {
+    position: absolute;
+    top: 0.6rem;
+    left: 0.6rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: var(--radius-sm);
+    background: var(--color-dark);
+    color: var(--color-cream);
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-family: 'Fredoka', sans-serif;
+    border: 2px solid rgba(253, 246, 237, 0.25);
+    z-index: 10;
+    pointer-events: none;
+    letter-spacing: 0.02em;
+}
+
+.canvas-wrapper[data-tool="wall"]::before  { content: "[ ] Muro"; }
+.canvas-wrapper[data-tool="start"]::before { content: "[S] Inicio"; }
+.canvas-wrapper[data-tool="goal"]::before  { content: "[G] Meta"; }
 
 #maze-canvas {
     max-width: 100%;
