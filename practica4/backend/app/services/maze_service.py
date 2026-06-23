@@ -113,7 +113,7 @@ class MazeService:
         mensaje = (
             f"Ruta encontrada: {len(search_result.path)} celdas."
             if encontrado
-            else "No existe una ruta válida entre el inicio y la meta."
+            else self._diagnosticar_sin_ruta(maze)
         )
 
         return BusquedaResult(
@@ -148,6 +148,38 @@ class MazeService:
     # ------------------------------------------------------------------
     # Helpers internos
     # ------------------------------------------------------------------
+
+    @staticmethod
+    def _diagnosticar_sin_ruta(maze: Maze) -> str:
+        """
+        Genera un mensaje descriptivo cuando el algoritmo no encontró ruta.
+
+        Inspecciona el laberinto para distinguir entre tres casos:
+        - El inicio no tiene vecinos transitables (rodeado de muros).
+        - La meta no tiene vecinos transitables (rodeada de muros).
+        - Existe camino desde el inicio pero no llega a la meta
+          (laberinto desconectado por obstáculos manuales).
+
+        Args:
+            maze: Laberinto sobre el que falló la búsqueda.
+
+        Returns:
+            Mensaje descriptivo del motivo por el que no se encontró ruta.
+        """
+        if not maze.neighbors(maze.start):
+            return (
+                f"La posición de inicio {maze.start} está rodeada de muros "
+                "y no tiene ninguna celda adyacente transitable."
+            )
+        if not maze.neighbors(maze.goal):
+            return (
+                f"La posición de meta {maze.goal} está rodeada de muros "
+                "y no tiene ninguna celda adyacente transitable."
+            )
+        return (
+            "No existe una ruta válida entre el inicio y la meta. "
+            "Los obstáculos colocados desconectan ambas posiciones."
+        )
 
     @staticmethod
     def _seleccionar_estrategia(algoritmo: str) -> SearchStrategy:
