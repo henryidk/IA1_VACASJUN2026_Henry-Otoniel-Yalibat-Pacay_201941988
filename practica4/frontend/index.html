@@ -34,23 +34,7 @@
         <main class="main-layout">
             <!-- Sidebar: Controles -->
             <aside class="sidebar glass-panel">
-
-                <!-- Sección 0: Laberintos Predefinidos -->
-                <section class="control-group">
-                    <h2>Laberintos Predefinidos</h2>
-                    <p class="section-desc">5 laberintos de prueba, de fácil a experto</p>
-
-                    <select id="select-predefined" class="select-maze">
-                        <option value="">Cargando...</option>
-                    </select>
-
-                    <button id="btn-load-predefined" class="btn btn-secondary" disabled>
-                        Cargar Laberinto
-                    </button>
-                </section>
-
-                <hr class="divider">
-
+                
                 <!-- Sección 1: Generación -->
                 <section class="control-group">
                     <h2>Generador de Laberintos</h2>
@@ -74,7 +58,25 @@
 
                 <hr class="divider">
 
+                <!-- Sección 2: Edición Manual -->
+                <section class="control-group">
+                    <h2>Edición Manual</h2>
+                    <p class="section-desc">Haz clic en el laberinto para editar</p>
+                    
+                    <div class="tool-selector">
+                        <button class="tool-btn active" data-tool="wall">
+                            <span class="legend-color wall"></span> Muro
+                        </button>
+                        <button class="tool-btn" data-tool="start">
+                            <span class="legend-color start"></span> Inicio
+                        </button>
+                        <button class="tool-btn" data-tool="goal">
+                            <span class="legend-color goal"></span> Meta
+                        </button>
+                    </div>
+                </section>
 
+                <hr class="divider">
 
                 <!-- Sección 3: Búsqueda -->
                 <section class="control-group">
@@ -104,7 +106,7 @@
 
             <!-- Centro: Visualización del Laberinto -->
             <section class="maze-container glass-panel">
-                <div class="canvas-wrapper" id="canvas-wrapper" data-tool="wall">
+                <div class="canvas-wrapper" id="canvas-wrapper">
                     <canvas id="maze-canvas"></canvas>
                 </div>
                 <div class="legend">

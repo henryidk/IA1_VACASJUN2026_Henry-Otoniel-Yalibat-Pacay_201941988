@@ -10,22 +10,22 @@ import { MazeRenderer } from './MazeRenderer.js';
 const state = {
     maze: null,       // { grid, start, goal, rows, cols }
     isGenerating: false,
-    draggingNode: null // 'start' o 'goal'
+    activeTool: 'wall', // 'wall', 'start', 'goal'
+    isDragging: false,
+    dragValue: null     // 1 para poner muro, 0 para quitar muro al arrastrar
 };
 
 // --- Referencias al DOM ---
 const refs = {
     canvas: document.getElementById('maze-canvas'),
-    canvasWrapper: document.getElementById('canvas-wrapper'),
-    selectPredefined: document.getElementById('select-predefined'),
-    btnLoadPredefined: document.getElementById('btn-load-predefined'),
     btnGenerate: document.getElementById('btn-generate'),
     inputCols: document.getElementById('input-cols'),
     inputRows: document.getElementById('input-rows'),
     btnSearchBfs: document.getElementById('btn-search-bfs'),
     btnSearchDfs: document.getElementById('btn-search-dfs'),
     btnCompare: document.getElementById('btn-compare'),
-    resultsContainer: document.getElementById('results-container')
+    resultsContainer: document.getElementById('results-container'),
+    toolBtns: document.querySelectorAll('.tool-btn')
 };
 
 // --- Inicialización ---
@@ -40,8 +40,6 @@ const renderer = new MazeRenderer(refs.canvas);
 function updateUIState() {
     // Si estamos generando, bloqueamos todo
     if (state.isGenerating) {
-        refs.selectPredefined.disabled = true;
-        refs.btnLoadPredefined.disabled = true;
         refs.btnGenerate.disabled = true;
         refs.inputCols.disabled = true;
         refs.inputRows.disabled = true;
@@ -52,8 +50,6 @@ function updateUIState() {
     }
 
     // Si no estamos generando, restauramos controles de generación
-    refs.selectPredefined.disabled = false;
-    refs.btnLoadPredefined.disabled = !refs.selectPredefined.value;
     refs.btnGenerate.disabled = false;
     refs.inputCols.disabled = false;
     refs.inputRows.disabled = false;
@@ -78,53 +74,6 @@ function showStatusMessage(html, isError = false) {
 }
 
 // --- Event Handlers ---
-
-/**
- * Carga la lista de laberintos predefinidos en el <select>.
- */
-async function loadPredefinedOptions() {
-    try {
-        const mazes = await ApiClient.listMazes();
-
-        refs.selectPredefined.innerHTML = mazes
-            .map((m) => `<option value="${m.id}">${m.nombre} (${m.dificultad}, ${m.cols}x${m.rows})</option>`)
-            .join('');
-
-        updateUIState();
-    } catch (error) {
-        refs.selectPredefined.innerHTML = '<option value="">No se pudieron cargar</option>';
-        console.error('Error al cargar laberintos predefinidos:', error);
-    }
-}
-
-/**
- * Evento: Clic en Cargar Laberinto Predefinido
- */
-async function handleLoadPredefined() {
-    const id = refs.selectPredefined.value;
-    if (!id) return;
-
-    state.isGenerating = true;
-    refs.btnLoadPredefined.classList.add('loading');
-    showStatusMessage('<div class="empty-state">Cargando laberinto predefinido...</div>');
-    updateUIState();
-
-    try {
-        const mazeData = await ApiClient.getMaze(id);
-
-        state.maze = mazeData;
-        renderer.loadMaze(mazeData);
-
-        showStatusMessage(`<div class="empty-state">Laberinto "${mazeData.nombre}" cargado (${mazeData.cols}x${mazeData.rows}). Listo para buscar.</div>`);
-    } catch (error) {
-        showStatusMessage(`<div class="empty-state" style="color: #f87171;">Error: ${error.message}</div>`, true);
-        state.maze = null;
-    } finally {
-        state.isGenerating = false;
-        refs.btnLoadPredefined.classList.remove('loading');
-        updateUIState();
-    }
-}
 
 /**
  * Evento: Clic en Generar Laberinto
@@ -165,13 +114,25 @@ async function handleGenerate() {
 }
 
 // --- Asignación de Eventos ---
-refs.btnLoadPredefined.addEventListener('click', handleLoadPredefined);
-refs.selectPredefined.addEventListener('change', updateUIState);
 refs.btnGenerate.addEventListener('click', handleGenerate);
 
-// Eventos del Canvas para mover Inicio y Meta arrastrando
+// Herramientas de edición manual
+refs.toolBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        // Actualizar UI de botones
+        refs.toolBtns.forEach(b => b.classList.remove('active'));
+        const targetBtn = e.currentTarget;
+        targetBtn.classList.add('active');
+        
+        // Actualizar estado
+        state.activeTool = targetBtn.dataset.tool;
+    });
+});
+
+// Eventos del Canvas para edición manual
 function getCanvasCoords(e) {
     const rect = refs.canvas.getBoundingClientRect();
+    // Ajustar por si el canvas está escalado con CSS
     const scaleX = refs.canvas.width / rect.width;
     const scaleY = refs.canvas.height / rect.height;
     
@@ -183,65 +144,70 @@ function getCanvasCoords(e) {
     return { row, col };
 }
 
-function isValidEmptyCoord(row, col) {
+function isValidCoord(row, col) {
     if (!state.maze) return false;
-    if (row < 0 || row >= state.maze.rows || col < 0 || col >= state.maze.cols) return false;
-    return state.maze.grid[row][col] === 0; // Solo permitir mover sobre caminos vacíos
+    return row >= 0 && row < state.maze.rows && col >= 0 && col < state.maze.cols;
+}
+
+function applyEdit(row, col, isDrag = false) {
+    if (!isValidCoord(row, col)) return;
+    
+    const { maze, activeTool } = state;
+    let changed = false;
+
+    // Si la celda es el inicio o meta actuales y estamos usando la herramienta de muro,
+    // o al revés, hay que tener cuidado. Por simplicidad, el backend validará si pisamos algo inválido,
+    // pero aquí permitimos sobreescribir.
+
+    if (activeTool === 'wall') {
+        // Evitar pisar inicio o meta
+        if ((maze.start.row === row && maze.start.col === col) || 
+            (maze.goal.row === row && maze.goal.col === col)) {
+            return;
+        }
+
+        if (!isDrag) {
+            // En clic individual, invertimos el estado
+            state.dragValue = maze.grid[row][col] === 1 ? 0 : 1;
+        }
+        
+        if (maze.grid[row][col] !== state.dragValue) {
+            maze.grid[row][col] = state.dragValue;
+            changed = true;
+        }
+    } else if (activeTool === 'start' && !isDrag) {
+        maze.start = { row, col };
+        maze.grid[row][col] = 0; // Asegurar que sea transitable
+        changed = true;
+    } else if (activeTool === 'goal' && !isDrag) {
+        maze.goal = { row, col };
+        maze.grid[row][col] = 0; // Asegurar que sea transitable
+        changed = true;
+    }
+
+    if (changed) {
+        renderer.clearSearch(); // Borrar ruta anterior al editar
+        renderer.draw();
+        // Borrar mensaje de resultados anterior si editamos
+        showStatusMessage('<div class="empty-state">Laberinto editado. Ejecuta una búsqueda.</div>');
+    }
 }
 
 refs.canvas.addEventListener('mousedown', (e) => {
     if (!state.maze) return;
+    state.isDragging = true;
     const { row, col } = getCanvasCoords(e);
-    
-    // Detectar si hizo clic en el Inicio o Meta
-    if (row === state.maze.start.row && col === state.maze.start.col) {
-        state.draggingNode = 'start';
-        refs.canvas.style.cursor = 'grabbing';
-    } else if (row === state.maze.goal.row && col === state.maze.goal.col) {
-        state.draggingNode = 'goal';
-        refs.canvas.style.cursor = 'grabbing';
-    }
+    applyEdit(row, col, false);
 });
 
 refs.canvas.addEventListener('mousemove', (e) => {
-    if (!state.maze) {
-        refs.canvas.style.cursor = 'default';
-        return;
-    }
-    
+    if (!state.isDragging || !state.maze) return;
     const { row, col } = getCanvasCoords(e);
-    
-    if (state.draggingNode) {
-        // Mover nodo si la celda es válida
-        if (isValidEmptyCoord(row, col)) {
-            // Evitar solapar inicio y meta
-            if (state.draggingNode === 'start' && (row !== state.maze.goal.row || col !== state.maze.goal.col)) {
-                state.maze.start = { row, col };
-                renderer.setStart(row, col);
-                renderer.clearSearch();
-            } else if (state.draggingNode === 'goal' && (row !== state.maze.start.row || col !== state.maze.start.col)) {
-                state.maze.goal = { row, col };
-                renderer.setGoal(row, col);
-                renderer.clearSearch();
-            }
-        }
-    } else {
-        // Actualizar cursor visual (hover)
-        if (row === state.maze.start.row && col === state.maze.start.col || 
-            row === state.maze.goal.row && col === state.maze.goal.col) {
-            refs.canvas.style.cursor = 'grab';
-        } else {
-            refs.canvas.style.cursor = 'default';
-        }
-    }
+    applyEdit(row, col, true);
 });
 
 window.addEventListener('mouseup', () => {
-    if (state.draggingNode) {
-        state.draggingNode = null;
-        refs.canvas.style.cursor = 'grab';
-        showStatusMessage('<div class="empty-state">Posición actualizada. Ejecuta una búsqueda.</div>');
-    }
+    state.isDragging = false;
 });
 
 // --- Ejecución y Animación de Búsqueda ---
@@ -391,4 +357,3 @@ refs.btnCompare.addEventListener('click', handleCompare);
 
 // Inicializar UI
 updateUIState();
-loadPredefinedOptions();
