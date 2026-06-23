@@ -23,7 +23,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .core.config import API_DESCRIPTION, API_TITLE, API_VERSION
-from .api.routes import mazes
+from .api.routes import mazes, search
 
 # ---------------------------------------------------------------------------
 # Rutas de archivos
@@ -64,9 +64,11 @@ app.include_router(
     prefix="/api/mazes",
     tags=["Laberintos"],
 )
-
-# placeholder — los routers de búsqueda se agregarán en el Grupo 6
-# app.include_router(search.router, prefix="/api/search", tags=["Búsqueda"])
+app.include_router(
+    search.router,
+    prefix="/api/search",
+    tags=["B\u00fasqueda"],
+)
 
 # ---------------------------------------------------------------------------
 # Frontend estático

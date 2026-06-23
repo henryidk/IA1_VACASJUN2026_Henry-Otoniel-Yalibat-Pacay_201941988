@@ -1,11 +1,13 @@
 """
-Schemas Pydantic para request/response de laberintos.
+Schemas Pydantic para request/response de laberintos y búsquedas.
 
 Define los modelos de entrada y salida que FastAPI usa para validar
 y serializar los datos entre el cliente y la API.
 """
 
 from __future__ import annotations
+
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -78,3 +80,76 @@ class MazeResponse(BaseModel):
     goal:  PositionSchema
     rows:  int
     cols:  int
+
+
+# ---------------------------------------------------------------------------
+# Búsqueda de rutas
+# ---------------------------------------------------------------------------
+
+class SearchRequest(BaseModel):
+    """
+    Parámetros para ejecutar un algoritmo de búsqueda sobre un laberinto.
+
+    El cliente envía la cuadrícula completa junto con las posiciones de
+    inicio y meta, y selecciona el algoritmo que desea ejecutar.
+    """
+
+    grid:      list[list[int]] = Field(..., description="Cuadrícula 2-D del laberinto (0=abierta, 1=muro).")
+    start:     PositionSchema  = Field(..., description="Posición de inicio del agente.")
+    goal:      PositionSchema  = Field(..., description="Posición objetivo.")
+    algoritmo: Literal["BFS", "DFS"] = Field(
+        ...,
+        description="Algoritmo de búsqueda a usar: 'BFS' (anchura) o 'DFS' (profundidad).",
+    )
+
+
+class SearchResponse(BaseModel):
+    """
+    Resultado de la ejecución de un algoritmo de búsqueda.
+
+    Attributes:
+        algoritmo:        Nombre del algoritmo ejecutado.
+        encontrado:       ``True`` si existe ruta de inicio a meta.
+        ruta:             Lista de posiciones del camino, o ``None``.
+        explorados:       Nodos visitados en orden de exploración (para animación).
+        nodos_explorados: Total de nodos visitados.
+        tiempo_ms:        Tiempo de ejecución en milisegundos.
+        mensaje:          Descripción legible del resultado.
+    """
+
+    algoritmo:        str
+    encontrado:       bool
+    ruta:             list[PositionSchema] | None
+    explorados:       list[PositionSchema]
+    nodos_explorados: int
+    tiempo_ms:        float
+    mensaje:          str
+
+
+# ---------------------------------------------------------------------------
+# Comparación BFS vs DFS
+# ---------------------------------------------------------------------------
+
+class CompareRequest(BaseModel):
+    """
+    Parámetros para comparar BFS y DFS sobre el mismo laberinto.
+
+    Igual que ``SearchRequest`` pero sin campo ``algoritmo``,
+    ya que el endpoint ejecuta ambos automáticamente.
+    """
+
+    grid:  list[list[int]] = Field(..., description="Cuadrícula 2-D del laberinto (0=abierta, 1=muro).")
+    start: PositionSchema  = Field(..., description="Posición de inicio del agente.")
+    goal:  PositionSchema  = Field(..., description="Posición objetivo.")
+
+
+class CompareResponse(BaseModel):
+    """
+    Resultado de ejecutar BFS y DFS sobre el mismo laberinto.
+
+    Permite comparar directamente las métricas de ambos algoritmos:
+    longitud de ruta, nodos explorados y tiempo de ejecución.
+    """
+
+    bfs: SearchResponse
+    dfs: SearchResponse
