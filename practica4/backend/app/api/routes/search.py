@@ -15,6 +15,7 @@ from fastapi import APIRouter, HTTPException, status
 
 from ...domain.maze import Maze, Position
 from ...schemas.maze_schemas import (
+    CompareRequest,
     CompareResponse,
     PositionSchema,
     SearchRequest,
@@ -103,3 +104,35 @@ def buscar(request: SearchRequest) -> SearchResponse:
         ) from exc
 
     return _to_response(result)
+
+
+# ---------------------------------------------------------------------------
+# POST /api/search/compare
+# ---------------------------------------------------------------------------
+
+@router.post(
+    "/compare",
+    response_model=CompareResponse,
+    summary="Comparar BFS y DFS sobre el mismo laberinto",
+    description=(
+        "Ejecuta BFS y DFS sobre el **mismo** laberinto en una sola llamada. "
+        "Devuelve las métricas de ambos algoritmos para comparar longitud de ruta, "
+        "nodos explorados y tiempo de ejecución."
+    ),
+    status_code=status.HTTP_200_OK,
+)
+def comparar(request: CompareRequest) -> CompareResponse:
+    """
+    Ejecuta BFS y DFS sobre el laberinto proporcionado y devuelve ambos resultados.
+
+    - **grid**: cuadrícula 2-D (0 = celda abierta, 1 = muro).
+    - **start**: posición de inicio ``{row, col}``.
+    - **goal**: posición objetivo ``{row, col}``.
+    """
+    maze = _build_maze(request.grid, request.start, request.goal)
+    results = _service.comparar(maze)
+
+    return CompareResponse(
+        bfs=_to_response(results["BFS"]),
+        dfs=_to_response(results["DFS"]),
+    )
